@@ -1,0 +1,27 @@
+{
+  "name": "jbot",
+  "version": "1.0.0",
+  "description": "TheJakobBot",
+  "main": "main.js",
+  "scripts": {
+    "test": "node main.js debug",
+    "start": "node main.js"
+  },
+  "author": "TheJakobCraft",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.1.0",
+    "discord.js": "^12.2.0",
+    "ffmpeg": "0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "fs": "^0.0.1-security",
+    "moment": "^2.26.0",
+    "moment-duration-format": "^2.3.2",
+    "mysql": "^2.18.1",
+    "node-telegram-bot-api": "^0.50.0",
+    "node.js": "^0.0.1-security",
+    "nodemon": "^2.0.4",
+    "opusscript": "0.0.7",
+    "ytdl-core": "^2.1.5"
+  }
+}

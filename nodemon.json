@@ -1,0 +1,3 @@
+{
+    "ignore": ["cfg.json", "package.json", "README.md"]
+}
