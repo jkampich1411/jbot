@@ -2,7 +2,7 @@
     Name: JBot
     Author: TheJakobCraft
     Version: 1.0.0
-    Programs: Twitch and Discord 
+    Programs: Twitch, Discord and Telegram
     Developing Start: 1st April, 2020
 */
 // IMPORTS
@@ -13,6 +13,7 @@ const embeds = require('./embed');
 const ytdl = require("ytdl-core");
 const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
+const { isAbsolute } = require('path');
 require("moment-duration-format");
 moment.locale('de');
 
@@ -310,6 +311,8 @@ client.login(cfg.token);
 var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
 bot.on('message', (msg) => {
     let chatID = msg.chat.id;
+    if(msg.text === /\/abt/) return;
+    if(msg.text === /\/sdm/) return;
     bot.sendMessage(chatID, 'Nachricht erhalten')
 });
 bot.onText(/\/abt/, function (msg) {
