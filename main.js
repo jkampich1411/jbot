@@ -329,4 +329,3 @@ bot.onText(/\/sdm/, function (msg) {
     client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
     bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
 });
-//iamjakob
