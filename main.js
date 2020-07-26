@@ -59,7 +59,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
         client.user.setPresence({
             game: {
                 name: `Auf ${client.guilds.size} Servern | jc!help`,
-                type: "Streaming",
+                type: "streaming",
                 url: "https://thejakobcraft.xyz"
             }
         });
