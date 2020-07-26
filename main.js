@@ -60,7 +60,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             game: {
                 name: `Auf ${client.guilds.size} Servern | jc!help`,
                 type: "Streaming",
-                url: ""
+                url: "https://thejakobcraft.xyz"
             }
         });
     });
