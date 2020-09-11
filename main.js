@@ -14,6 +14,7 @@ const ytdl = require("ytdl-core");
 const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
+const nodemon = require('nodemon');
 require("moment-duration-format");
 moment.locale('de');
 
@@ -281,9 +282,17 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             var emb = new discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle("Der Invite Link")
-            .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib https://discord.com/oauth2/authorize?client_id=533660748816318496&scope=bot&permissions=8 im Browser ein! Viel Spaß")
+            .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobcraft im Browser ein! Viel Spaß")
             .setFooter(foot, avat)
             msg.channel.send(emb);
+        }
+        if(cmd === "restart") {
+            if (msg.author.id === cfg.author) {
+                client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {
+                    msg.channel.send("ACHTUNG BOT RESTART");
+            });
+        }
+
         }
     });
 
