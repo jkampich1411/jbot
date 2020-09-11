@@ -121,11 +121,11 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
         const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
 
-        if(msg.channel.name == "jc-chat" && msg.author.id != client.user.id) {
+        if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
             msg.delete()
             .then(msg => console.log(``))
             .catch(console.error);             
-            client.channels.cache.filter(c => c.name == "jc-chat").forEach(channel => {                 
+            client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
                 var embed = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle(msg.author.tag)
@@ -234,57 +234,6 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             }
-        }
-        if(cmd === "ban") {
-            let usr = msg.cache.mentions.first();
-            let res = args.slice(1).join(' ');
-            if(!usr) {
-                try {
-                    let erremb = new discord.MessageEmbed()
-                    .setColor('#DD2C00')
-                    .setTitle('ERROR:')
-                    .setDescription("Konnte diese USERID nicht finden!")
-                    .setFooter(foot, avat)
-                    if (!message.guild.members.get(args.slice(0, 1).join(' '))) throw new Error(erremb);
-
-                    usr = msg.guild.cache.members.get(args.slice(0, 1).join(' '));
-                    usr = usr.user;
-                } catch (err) {
-                    let erremb = new discord.MessageEmbed()
-                    .setColor('#DD2C00')
-                    .setTitle('ERROR:')
-                    .setDescription("Konnte diese USERID nicht finden!")
-                    .setFooter(foot, avat)
-                    return msg.reply(erremb)
-                }
-            }
-            if(usr === msg.author) {
-                let erremb = new discord.MessageEmbed()
-                    .setColor('#DD2C00')
-                    .setTitle('ERROR:')
-                    .setDescription("Willst dich selbst bannen neh?")
-                    .setFooter(foot, avat)
-                    return msg.reply(erremb)
-            } else if (!res) {
-                let erremb = new discord.MessageEmbed()
-                    .setColor('#DD2C00')
-                    .setTitle('ERROR:')
-                    .setDescription("Du hast keine Begründung angegeben!")
-                    .setFooter(foot, avat)
-                    return msg.reply(erremb)
-            } else if (!message.guild.cache.member(usr).bannable) {
-                let erremb = new discord.MessageEmbed()
-                    .setColor('#DD2C00')
-                    .setTitle('ERROR:')
-                    .setDescription("Diesen Benutzer kann ich nicht bannen!")
-                    .setFooter(foot, avat)
-                    return msg.reply(erremb)
-            } 
-            await msg.guild.ban(usr);
-            let emb = new discord.MessageEmbed()
-            .setColor('RED')
-            .setDescription(`✅ ${user.tag} wurde gebannt!`);
-            message.channel.send(emb);
         }
         // if(msg.content === cfg.prefix + "login") {
         //     msgOutput(msg)
