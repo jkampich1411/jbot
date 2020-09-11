@@ -46,6 +46,44 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
     //     database: "Mo5fs8XahO"
     //   });
     client.on('ready', () => {
+        client.user.setPresence({
+            status: 'online',
+            activity: {
+                name: `Loading......`,
+                type: 'PLAYING',
+            }
+        });
+        let activNum = 0;
+        setInterval(function() {
+            if(activNum === 0) {
+                client.user.setPresence({
+                    status: 'online',
+                    activity: {
+                        name: `auf ${client.guilds.cache.size} Server`,
+                        type: 'WATCHING'
+                    }
+                });
+                activNum = 1;
+            } else if(activNum === 1) {
+                client.user.setPresence({
+                    status: 'online',
+                    activity: {
+                        name: `euren Nachrichten`,
+                        type: 'LISTENING'
+                    }
+                });
+                activNum = 2;
+            } else if(activNum === 2) {
+                client.user.setPresence({
+                    status: 'online',
+                    activity: {
+                        name: `jc!help`,
+                        type: 'LISTENING'
+                    }
+                });
+                activNum = 0;
+            }
+        }, 10 * 1000);
         console.log(`Eingeloggt als ${client.user.username}`);
         console.log(`Auf ${client.guilds.cache.size} Servern!`)
         // con.connect(function(err) {
@@ -55,14 +93,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
         //       console.log(result);
         //     });
         //   });
-        client.user.setPresence({
-            status: 'online',
-            activity: {
-                name: `Auf ${client.guilds.cache.size} Servern | jc!help`,
-                type: 'STREAMING',
-                url: 'https://thejakobcraft.xyz'
-            }
-        });
+        
     });
     client.on('reconnecting', () => {
         console.log("Verbindet neu!");
