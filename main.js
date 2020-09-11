@@ -236,51 +236,55 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             }
         }
         if(cmd === "ban") {
-            if (msg.member.hasPermission("BAN_MEMBERS")) {
-                var res;
-                if (!args[2]) {
-                    res = 'res';
-                } else {
-                    res = args[2];
+            let usr = msg.cache.mentions.first();
+            let res = args.slice(1).join(' ');
+            if(!usr) {
+                try {
+                    let erremb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setTitle('ERROR:')
+                    .setDescription("Konnte diese USERID nicht finden!")
+                    .setFooter(foot, avat)
+                    if (!message.guild.members.get(args.slice(0, 1).join(' '))) throw new Error(erremb);
+
+                    usr = msg.guild.cache.members.get(args.slice(0, 1).join(' '));
+                    usr = usr.user;
+                } catch (err) {
+                    let erremb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setTitle('ERROR:')
+                    .setDescription("Konnte diese USERID nicht finden!")
+                    .setFooter(foot, avat)
+                    return msg.reply(erremb)
                 }
-                var usr = msg.mentions.members.first();
-                if (usr) {
-                    var banned = msg.guild.member(usr);
-                    if (banned) {
-                        banned.ban({
-                            reason: res,
-                        }).catch(err => {
-                            throw err;
-                        });
-                    }
-                }
-            } else return;
-            msg.delete()
-            .then(msg => console.log(``))
-            .catch(console.error);
-        }
-        if(cmd === "kick") {
-            if (msg.member.hasPermission("KICK_MEMBERS")) {
-                var res;
-                if (!args[2]) {
-                    res = 'res';
-                } else {
-                    res = args[2];
-                }
-                var user = msg.mentions.members.first();
-                if (user) {
-                    var kicked = msg.guild.member(user);
-                    if(kicked) {
-                        kicked.kick(res)
-                        .catch(err => {
-                            throw err;
-                        });
-                    }
-                }
-            } else return;
-            msg.delete()
-            .then(msg => console.log(``))
-            .catch(console.error);
+            }
+            if(usr === msg.author) {
+                let erremb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setTitle('ERROR:')
+                    .setDescription("Willst dich selbst bannen neh?")
+                    .setFooter(foot, avat)
+                    return msg.reply(erremb)
+            } else if (!res) {
+                let erremb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setTitle('ERROR:')
+                    .setDescription("Du hast keine Begründung angegeben!")
+                    .setFooter(foot, avat)
+                    return msg.reply(erremb)
+            } else if (!message.guild.cache.member(usr).bannable) {
+                let erremb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setTitle('ERROR:')
+                    .setDescription("Diesen Benutzer kann ich nicht bannen!")
+                    .setFooter(foot, avat)
+                    return msg.reply(erremb)
+            } 
+            await msg.guild.ban(usr);
+            let emb = new discord.MessageEmbed()
+            .setColor('RED')
+            .setDescription(`✅ ${user.tag} wurde gebannt!`);
+            message.channel.send(emb);
         }
         // if(msg.content === cfg.prefix + "login") {
         //     msgOutput(msg)
