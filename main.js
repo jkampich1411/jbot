@@ -282,7 +282,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             var emb = new discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle("Der Invite Link")
-            .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobcraft im Browser ein! Viel Spaß")
+            .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobbot im Browser ein! Viel Spaß")
             .setFooter(foot, avat)
             msg.channel.send(emb);
         }
