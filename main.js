@@ -15,7 +15,6 @@ const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
-const { hasUncaughtExceptionCaptureCallback } = require('process');
 require("moment-duration-format");
 moment.locale('de');
 
