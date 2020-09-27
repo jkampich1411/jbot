@@ -1,5 +1,6 @@
 /* 
     Name: JBot
+    Hallo Test
     Author: TheJakobCraft
     Version: 1.0.0
     Programs: Twitch, Discord and Telegram
