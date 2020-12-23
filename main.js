@@ -16,6 +16,7 @@ const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
+const { chdir } = require('process');
 const flags = {
 	DISCORD_EMPLOYEE: 'Discord Employee',
 	DISCORD_PARTNER: 'Discord Partner',
@@ -56,6 +57,21 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
     function msgOutput(msg) {
         console.log(msg + " " +msg.author.username);
     }
+    function getTimeRemaining(et){
+        var total = Date.parse(et) - Date.parse(new Date());
+        var seconds = Math.floor( (total/1000) % 60 );
+        var minutes = Math.floor( (total/1000/60) % 60 );
+        var hours = Math.floor( (total/(1000*60*60)) % 24 );
+        var days = Math.floor( total/(1000*60*60*24) );
+      
+        return {
+          total,
+          days,
+          hours,
+          minutes,
+          seconds
+        };
+      }
     // var con = mysql.createConnection({
     //     host: "remotemysql.com",
     //     user: "Mo5fs8XahO",
@@ -218,6 +234,42 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 msg.edit(emb);
             });
         }   
+        if (cmd === "countdown") {
+            msg.delete()
+            .then(msg => console.log(``))
+            .catch(console.error);
+            if (args[1] === "silvester") {
+                /* console.log(cfg.silvcntchid)
+                for(var i = 0; i < cfg.silvcntchid.length; i++){
+                    if (!(cfg.silvcntchid[i] === msg.channel.id)) {
+                        cfg.silvcntchid.push(msg.channel.id);
+                        msg.reply(cfg.silvcntchid)
+                    } 
+                }
+                msg.reply(`OK ${cfg.silvcntchid.length}`) */
+                setInterval(() => {
+                    var dl = '1/1/2021';
+                    var getSilvTime = `${getTimeRemaining(dl).hours}h:${getTimeRemaining(dl).minutes}m:${getTimeRemaining(dl).seconds}s`;
+                    var emb = new discord.MessageEmbed()
+                    .setColor("#DD2C00")
+                    .setTitle("TTS - Time To Silvester")
+                    .setDescription("SilvesterCountdown!")
+                    .addFields(
+                        { name: 'Countdown:', value: `${getSilvTime}` },
+                        { name: 'Über mir findest du den Countdown!', value: '\u200B', inline: true },
+                        { name: '\u200B', value: '\u200B' },
+                    )
+                    .setFooter(foot, avat)
+                    msg.channel.send(emb)
+                }, 60000);
+            }
+        }
+
+
+                
+
+
+
         if(cmd === "help") {
             msg.delete()
             .then(msg => console.log(``))
@@ -226,7 +278,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!help")
-                .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
+                .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.\n\n\njc!cou")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else 
@@ -234,7 +286,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!invite")
-                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
+                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.\n\n\nntdo")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else
@@ -242,7 +294,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!chatsetup")
-                .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat.")
+                .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat.\n\n\nn ")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else
@@ -250,14 +302,14 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!ping")
-                .setDescription("Dieser Command sendet die Bot-Latency!")
+                .setDescription("Dieser Command sendet die Bot-Latency!\n\n\nsilves")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else {
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
-                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.")
+                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\n\n\ner")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             }
@@ -326,7 +378,7 @@ client.login(cfg.token);
 
 // Twitch
 
-// Telegram
+Telegram
 var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
 bot.on('message', (msg) => {
     let chatID = msg.chat.id;
