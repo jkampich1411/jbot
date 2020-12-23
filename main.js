@@ -16,6 +16,21 @@ const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
+const flags = {
+	DISCORD_EMPLOYEE: 'Discord Employee',
+	DISCORD_PARTNER: 'Discord Partner',
+	BUGHUNTER_LEVEL_1: 'Bug Hunter (Level 1)',
+	BUGHUNTER_LEVEL_2: 'Bug Hunter (Level 2)',
+	HYPESQUAD_EVENTS: 'HypeSquad Events',
+	HOUSE_BRAVERY: 'House of Bravery',
+	HOUSE_BRILLIANCE: 'House of Brilliance',
+	HOUSE_BALANCE: 'House of Balance',
+	EARLY_SUPPORTER: 'Early Supporter',
+	TEAM_USER: 'Team User',
+	SYSTEM: 'System',
+	VERIFIED_BOT: 'Verified Bot',
+	VERIFIED_DEVELOPER: 'Verified Bot Developer'
+};
 require("moment-duration-format");
 moment.locale('de');
 
@@ -137,28 +152,38 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             });             
             return;
         }
-        if (cmd === "userinfo") {
+        /* if (cmd === "userinfo") {
             let member = msg.mentions.users.first() || args[1] || msg.author;
-            let msgu = msg.guild.member(member);
-            let userinf = {};
-
-            userinf.avatar = member.avatarURL;
-            userinf.name = member.username;
-            userinf.discrim = `#${member.discriminator}`;
-            userinf.id = member.id;
-            userinf.status = member.presence.status;
-            userinf.registered = moment.utc(member.createdAt).utcOffset(+2).format("dddd, MMMM Do YYYY, HH:mm:ss");
-            userinf.joined = moment.utc(msgu.joinedAt).utcOffset(+2).format("dddd, MMMM Do YYYY, HH:mm:ss");
-            var emb = new discord.MessageEmbed()
-            .setAuthor(member.tag, userinf.avatar)
-            .setThumbnail(userinf.avatar)
-            .addField(`Username`, userinf.name, true)
-            .addField(`Tag`, userinf.discrim, true)
-            .addField(`ID`, userinf.id, true)
-            .addField(`Status`, userinf.status, true)
-            .addField(`Registriert`, userinf.registered, true)
-            .addField(`Beigetreten`, userinf.joined, true)
-            .setFooter(foot, avat);
+            if(!member) member = msg.guild.members.cache.get(user);
+            if(!member) return msg.channel.send(`:x: Diese Person konnte nicht gefunden werden!`);
+            function userstat(stat) {
+                let status = {
+                    online: "https://emoji.gg/assets/emoji/9166_online.png",
+                    idle: "https://emoji.gg/assets/emoji/3929_idle.png",
+                    dnd: "https://emoji.gg/assets/emoji/2531_dnd.png",
+                    offline: "<img src=https://emoji.gg/assets/emoji/7445_status_offline.png/>"
+                };
+                if(stat === 'online') return status.online;
+                if(stat === 'idle') return status.idle;
+                if(stat === 'dnd') return status.dnd;
+                if(stat === 'offline') return status.offline;
+            };
+            let userflags = member.flags.toArray();
+            let emb = new discord.MessageEmbed()
+                .setThumbnail(member.avatarURL({dynamic: true, size: 512}))
+                .setColor(member.displayHexColor)
+                .addField('User', [
+                    `**> Username:** ${member.username}`,
+                    `**> Tag:** ${member.discriminator}`,
+                    `**> ID:** ${member.id}`,
+                    `**> Flags:** ${userflags.length ? userflags.map(flag => flags[flag]).join(', ') : 'None'}`,
+                    `**> Avatar:** ${member.avatarURL({dynamic: true})}`,
+                    `**> Time Created:** ${moment(member.createdTimestamp).format('LT')} ${moment(member.createdTimestamp).format('LL')} ${moment(member.createdTimestamp).format('LL')} ${moment(member.createdTimestamp).fromNow()}`,
+                    `**> Status:** ${member.presence.status}`,
+                    `**> Game:** ${member.presence.game}`,
+                    `**> Server Join Date:** ${moment(member.joinedAt).format('LL LTS')}`,
+                    '\u200b'
+                ])
             msg.channel.send(emb);
         }
         if(cmd === "serverinfo") {
@@ -168,14 +193,14 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             .addField(`Inhaber`, msg.guild.owner, true)
             .addField(`ID`, msg.guild.id, true)
             .addField(`Mitglieder`, msg.guild.memberCount, true)
-            .addField(`Bots`, msg.guild.members.cache.filter(mem => mem.user.bot === true).size, true)
-            .addField(`Online`, msg.guild.members.cache.filter(mem => mem.presence.status != "offline").size, true)
-            .addField(`Offline`, msg.guild.members.cache.filter(mem => mem.presence.status === "offline").size, true)
+            .addField(`Bots`, msg.guild.members.filter(mem => mem.user.bot === true).size, true)
+            .addField(`Online`, msg.guild.members.filter(mem => mem.presence.status != "offline").size, true)
+            .addField(`Offline`, msg.guild.members.filter(mem => mem.presence.status === "offline").size, true)
             .addField(`Rollen`, msg.guild.roles.cache.size, true)
             .addField(`Verifizierungslevel`, msg.guild.verificationLevel, true)
             .addField(`Erstellungsdatum`, moment.utc(msg.guild.createdAt).utcOffset(+2).format("dddd, MMMM Do YYYY, HH:mm:ss"), true)
             msg.channel.send(emb);
-        }
+        } */
         if (msg.content === cfg.prefix + "ping") {
             const startTime = Date.now();
             var emb = new discord.MessageEmbed()
@@ -255,7 +280,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             .catch(console.error);
             if (msg.author = msg.guild.owner) {
                 if(msg.guild.channels.cache.find(channel => channel.name === 'jc-chat')) {
-                    var emb = new discord.MessageEmbed()
+                    var emb = new discord.MessageEmbed()         
                     .setColor('#DD2C00')
                     .setTitle("Den Globalchat erstellen!")
                     .setDescription("Du hast den Globalchat doch schon! Halte ausschau nach einem Kanal der 'jc-chat' heißt!")
