@@ -378,7 +378,7 @@ client.login(cfg.token);
 
 // Twitch
 
-Telegram
+// Telegram
 var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
 bot.on('message', (msg) => {
     let chatID = msg.chat.id;
