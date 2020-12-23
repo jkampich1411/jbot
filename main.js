@@ -249,7 +249,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 msg.reply(`OK ${cfg.silvcntchid.length}`) */
                 setInterval(() => {
                     var dl = '1/1/2021';
-                    var getSilvTime = `${getTimeRemaining(dl).hours}h:${getTimeRemaining(dl).minutes}m:${getTimeRemaining(dl).seconds}s`;
+                    var getSilvTime = `${getTimeRemaining(dl).hours}h:${getTimeRemaining(dl).minutes}m`;
                     var emb = new discord.MessageEmbed()
                     .setColor("#DD2C00")
                     .setTitle("TTS - Time To Silvester")
