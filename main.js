@@ -412,24 +412,24 @@ client.login(cfg.token);
 // Twitch
 
 // Telegram
-// var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
-// bot.on('message', (msg) => {
-//     let chatID = msg.chat.id;
-//     if(msg.text === /\/abt/) return;
-//     if(msg.text === /\/sdm/) return;
-//     bot.sendMessage(chatID, 'Nachricht erhalten')
-// });
-// bot.onText(/\/abt/, function (msg) {
-//     bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findet man auf Discord!`);
-// });
+var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
+bot.on('message', (msg) => {
+    let chatID = msg.chat.id;
+    if(msg.text === /\/abt/) return;
+    if(msg.text === /\/sdm/) return;
+    bot.sendMessage(chatID, 'Nachricht erhalten')
+});
+bot.onText(/\/abt/, function (msg) {
+    bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findet man auf Discord!`);
+});
 
-// // ALL
-// bot.onText(/\/sdm/, function (msg) {
-//     let chanid = "733638201935265812";
-//     let message = msg.text.slice(4);
-//     if(!message) {
-//         message = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.";
-//     }
-//     client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
-//     bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
-// });
+// ALL
+bot.onText(/\/sdm/, function (msg) {
+    let chanid = "733638201935265812";
+    let message = msg.text.slice(4);
+    if(!message) {
+        message = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.";
+    }
+    client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
+    bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
+});
