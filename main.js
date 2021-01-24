@@ -1,6 +1,5 @@
 /* 
     Name: JBot
-    Hallo Test
     Author: TheJakobCraft
     Version: 1.0.0
     Programs: Twitch, Discord and Telegram
@@ -17,6 +16,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
 const { chdir } = require('process');
+const nodemailer = require('nodemailer');
 const flags = {
 	DISCORD_EMPLOYEE: 'Discord Employee',
 	DISCORD_PARTNER: 'Discord Partner',
@@ -35,6 +35,42 @@ const flags = {
 require("moment-duration-format");
 moment.locale('de');
 
+var transporter = nodemailer.createTransport({
+    host: "itm-hof.tk",
+    port: 587,
+    auth: {
+        user: "status@thejakobcraft.xyz",
+        pass: "Jakob@1411"
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+var statusUP = {
+  from: 'status@thejakobcraft.xyz',
+  to: 'component+d9d8e5ba-7189-473f-8093-34014410e8ca@notifications.statuspage.io',
+  subject: 'UP',
+  text: '_'
+};
+var statusDOWN = {
+    from: 'status@thejakobcraft.xyz',
+    to: 'component+d9d8e5ba-7189-473f-8093-34014410e8ca@notifications.statuspage.io',
+    subject: 'DOWN',
+    text: '_'
+};
+var statusPARTIAL = {
+    from: 'status@thejakobcraft.xyz',
+    to: 'component+d9d8e5ba-7189-473f-8093-34014410e8ca+partial_outage@notifications.statuspage.io',
+    subject: '__',
+    text: '_'
+};
+var statusDEGRADED = {
+    from: 'status@thejakobcraft.xyz',
+    to: 'component+d9d8e5ba-7189-473f-8093-34014410e8ca+degraded_performance@notifications.statuspage.io',
+    subject: '__',
+    text: '_'
+};
 // DISCORD
 var client = new discord.Client;
 var servers = {};
@@ -126,7 +162,13 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
         //       console.log(result);
         //     });
         //   });
-        
+        transporter.sendMail(statusUP, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log();
+            }
+          }); 
     });
     client.on('reconnecting', () => {
         console.log("Verbindet neu!");
@@ -235,9 +277,6 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             });
         }   
         if (cmd === "countdown") {
-            msg.delete()
-            .then(msg => console.log(``))
-            .catch(console.error);
             if (args[1] === "silvester") {
                 /* console.log(cfg.silvcntchid)
                 for(var i = 0; i < cfg.silvcntchid.length; i++){
@@ -264,12 +303,6 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 }, 60000);
             }
         }
-
-
-                
-
-
-
         if(cmd === "help") {
             msg.delete()
             .then(msg => console.log(``))
@@ -379,24 +412,24 @@ client.login(cfg.token);
 // Twitch
 
 // Telegram
-var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
-bot.on('message', (msg) => {
-    let chatID = msg.chat.id;
-    if(msg.text === /\/abt/) return;
-    if(msg.text === /\/sdm/) return;
-    bot.sendMessage(chatID, 'Nachricht erhalten')
-});
-bot.onText(/\/abt/, function (msg) {
-    bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findet man auf Discord!`);
-});
+// var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
+// bot.on('message', (msg) => {
+//     let chatID = msg.chat.id;
+//     if(msg.text === /\/abt/) return;
+//     if(msg.text === /\/sdm/) return;
+//     bot.sendMessage(chatID, 'Nachricht erhalten')
+// });
+// bot.onText(/\/abt/, function (msg) {
+//     bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findet man auf Discord!`);
+// });
 
-// ALL
-bot.onText(/\/sdm/, function (msg) {
-    let chanid = "733638201935265812";
-    let message = msg.text.slice(4);
-    if(!message) {
-        message = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.";
-    }
-    client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
-    bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
-});
+// // ALL
+// bot.onText(/\/sdm/, function (msg) {
+//     let chanid = "733638201935265812";
+//     let message = msg.text.slice(4);
+//     if(!message) {
+//         message = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.";
+//     }
+//     client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
+//     bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
+// });

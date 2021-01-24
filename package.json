@@ -20,6 +20,7 @@
     "mysql": "^2.18.1",
     "node-telegram-bot-api": "^0.50.0",
     "node.js": "^0.0.1-security",
+    "nodemailer": "^6.4.17",
     "nodemon": "^2.0.4",
     "opusscript": "0.0.7",
     "ytdl-core": "^2.1.5"
