@@ -403,9 +403,8 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                     msg.channel.send("ACHTUNG BOT RESTART");
             });
         }
-
-        }
-    });
+    }
+});
 
 client.login(cfg.token);
 
