@@ -275,7 +275,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 msg.edit(emb);
             });
         }   
-        if (cmd === "countdown") {
+/*         if (cmd === "countdown") {
             if (args[1] === "silvester") {
                 /* console.log(cfg.silvcntchid)
                 for(var i = 0; i < cfg.silvcntchid.length; i++){
@@ -284,7 +284,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                         msg.reply(cfg.silvcntchid)
                     } 
                 }
-                msg.reply(`OK ${cfg.silvcntchid.length}`) */
+                msg.reply(`OK ${cfg.silvcntchid.length}`)
                 setInterval(() => {
                     var dl = '1/1/2021';
                     var getSilvTime = `${getTimeRemaining(dl).days}d:${getTimeRemaining(dl).hours}h:${getTimeRemaining(dl).minutes}m`;
@@ -302,6 +302,8 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 }, 60000);
             }
         }
+*/
+
         if(cmd === "help") {
             msg.delete()
             .then(msg => console.log(``))
