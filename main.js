@@ -311,7 +311,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!help")
-                .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.\n\n\njc!cou")
+                .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else 
@@ -319,7 +319,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!invite")
-                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.\n\n\nntdo")
+                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else
@@ -327,7 +327,7 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!chatsetup")
-                .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat.\n\n\nn ")
+                .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else
@@ -335,14 +335,14 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!ping")
-                .setDescription("Dieser Command sendet die Bot-Latency!\n\n\nsilves")
+                .setDescription("Dieser Command sendet die Bot-Latency!")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else {
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
-                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\n\n\ner")
+                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             }
