@@ -9,7 +9,6 @@
 const discord = require('discord.js');
 const fs = require('fs');
 const mysql = require("mysql");
-const embeds = require('./embed');
 const ytdl = require("ytdl-core");
 const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
