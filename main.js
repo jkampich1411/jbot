@@ -16,6 +16,7 @@ const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
 const { chdir } = require('process');
 const nodemailer = require('nodemailer');
+const request = require('request');
 const flags = {
 	DISCORD_EMPLOYEE: 'Discord Employee',
 	DISCORD_PARTNER: 'Discord Partner',
