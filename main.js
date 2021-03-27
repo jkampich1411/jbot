@@ -213,71 +213,10 @@ function abfrageName(DCID, msg) {
         const args = interaction.data.options;
         const foot = `Auf ${client.guilds.cache.size} Servern`;
 
+
+        //HelpCommand
         if(cmd === "help") {
-            if (args[0] === 'help') {
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("CMD: jc!help")
-                .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
-                .setFooter(foot)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: '_'
-                        }
-                    }
-                })
-                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-            } else 
-            if(args[0] === 'invite') {
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("CMD: jc!invite")
-                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
-                .setFooter(foot)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: '_'
-                        }
-                    }
-                })
-                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-            } else
-            if(args[0] === 'chatsetup') {
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("CMD: jc!chatsetup")
-                .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
-                .setFooter(foot)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: '_'
-                        }
-                    }
-                })
-                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-            } else
-            if(args[0] === 'ping') {
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("CMD: jc!ping")
-                .setDescription("Dieser Command sendet die Bot-Latency!")
-                .setFooter(foot)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: '_'
-                        }
-                    }
-                })
-                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-            } else {
+            if(!args) {
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
@@ -292,8 +231,100 @@ function abfrageName(DCID, msg) {
                     }
                 })
                 new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+            } else { 
+                if (args[0]["value"] === 'help') {
+                    var emb = new discord.MessageEmbed()
+                    .setColor("#DD2C00")
+                    .setTitle("CMD: jc!help")
+                    .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
+                    .setFooter(foot)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: '_'
+                            }
+                        }
+                    })
+                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+                } else 
+                if(args[0]["value"] === 'invite') {
+                    var emb = new discord.MessageEmbed()
+                    .setColor("#DD2C00")
+                    .setTitle("CMD: jc!invite")
+                    .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
+                    .setFooter(foot)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: '_'
+                            }
+                        }
+                    })
+                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+                } else
+                if(args[0]["value"] === 'chatsetup') {
+                    var emb = new discord.MessageEmbed()
+                    .setColor("#DD2C00")
+                    .setTitle("CMD: jc!chatsetup")
+                    .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
+                    .setFooter(foot)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: '_'
+                            }
+                        }
+                    })
+                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+                } else
+                if(args[0]["value"] === 'ping') {
+                    var emb = new discord.MessageEmbed()
+                    .setColor("#DD2C00")
+                    .setTitle("CMD: jc!ping")
+                    .setDescription("Dieser Command sendet die Bot-Latency!")
+                    .setFooter(foot)
+                    client.api.interactions(interaction.id, interaction.token).callback.post({
+                        data: {
+                            type: 4,
+                            data: {
+                                content: '_'
+                            }
+                        }
+                    })
+                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+                }
             }
         }
+
+        //PingCommand
+        if (cmd === "ping") {
+            const startTime = Date.now();
+            var emb = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle("Ping")
+            .setDescription("Pong!")
+            .setFooter(foot, avat)
+            client.api.interactions(interaction.id, interaction.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        content: '_'
+                    }
+                }
+            })
+            new discord.WebhookClient(client.user.id, interaction.token).send(emb).then(cmd => {
+                const endTime = Date.now();
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("Ping")
+                .setDescription(`Pong! (${endTime - startTime}ms)`)
+                .setFooter(foot, avat)
+                new discord.WebhookClient(client.user.id, interaction.token).edit(emb);
+            });
+        }   
     });
 
     client.on('message', (msg) => { 
