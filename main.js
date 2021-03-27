@@ -17,6 +17,7 @@ const nodemon = require('nodemon');
 const { chdir } = require('process');
 const nodemailer = require('nodemailer');
 const request = require('request');
+const { clearImmediate } = require('timers');
 const flags = {
 	DISCORD_EMPLOYEE: 'Discord Employee',
 	DISCORD_PARTNER: 'Discord Partner',
@@ -75,7 +76,7 @@ var statusDEGRADED = {
 var client = new discord.Client;
 var servers = {};
 const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
-    function abfrageName(DCID, msg) {
+function abfrageName(DCID, msg) {
     var sql = 'SELECT * FROM users WHERE discord_id = ' + mysql.escape(DCID);
         con.query(sql, function (err, result, fields) {
             if (err) throw err;
@@ -168,7 +169,24 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
             } else {
               console.log();
             }
-          }); 
+          });
+        
+        //register SlashCMDS
+        client.api.applications(client.user.id).guilds('510412740364599317').commands.post({
+            data: {
+                name: "help",
+                description: "The Help Command",
+                options: [
+                    {
+                        "name": "type",
+                        "description": "Choose Helppage",
+                        "type": 3,
+                        "required": false
+                    }
+                ]
+            }
+        });
+
     });
     client.on('reconnecting', () => {
         console.log("Verbindet neu!");
@@ -189,6 +207,95 @@ const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
 
         };
     });
+
+    client.ws.on('INTERACTION_CREATE', async interaction => {
+        const cmd = interaction.data.name.toLowerCase();
+        const args = interaction.data.options;
+        const foot = `Auf ${client.guilds.cache.size} Servern`;
+
+        if(cmd === "help") {
+            if (args[0] === 'help') {
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("CMD: jc!help")
+                .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
+                .setFooter(foot)
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: '_'
+                        }
+                    }
+                })
+                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+            } else 
+            if(args[0] === 'invite') {
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("CMD: jc!invite")
+                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
+                .setFooter(foot)
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: '_'
+                        }
+                    }
+                })
+                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+            } else
+            if(args[0] === 'chatsetup') {
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("CMD: jc!chatsetup")
+                .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
+                .setFooter(foot)
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: '_'
+                        }
+                    }
+                })
+                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+            } else
+            if(args[0] === 'ping') {
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("CMD: jc!ping")
+                .setDescription("Dieser Command sendet die Bot-Latency!")
+                .setFooter(foot)
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: '_'
+                        }
+                    }
+                })
+                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+            } else {
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("Du brauchst Hilfe?")
+                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.")
+                .setFooter(foot)
+                client.api.interactions(interaction.id, interaction.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            content: '_'
+                        }
+                    }
+                })
+                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
+            }
+        }
+    });
+
     client.on('message', (msg) => { 
         if(msg.author.bot) return;
         const args = msg.content.trim().split(/ +/g);
