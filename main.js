@@ -186,6 +186,12 @@ function abfrageName(DCID, msg) {
                 ]
             }
         });
+        client.api.applications(client.user.id).guilds('510412740364599317').commands.post({
+           data: {
+               name: "ping",
+               description: "Bot Latency-Test"
+           } 
+        });
 
     });
     client.on('reconnecting', () => {
@@ -301,12 +307,11 @@ function abfrageName(DCID, msg) {
 
         //PingCommand
         if (cmd === "ping") {
-            const startTime = Date.now();
             var emb = new discord.MessageEmbed()
             .setColor("#DD2C00")
             .setTitle("Ping")
-            .setDescription("Pong!")
-            .setFooter(foot, avat)
+            .setDescription("Your ping is `" + `${Date.now() - cmd.createdTimestamp}` + " ms`")
+            .setFooter(foot)
             client.api.interactions(interaction.id, interaction.token).callback.post({
                 data: {
                     type: 4,
@@ -315,15 +320,7 @@ function abfrageName(DCID, msg) {
                     }
                 }
             })
-            new discord.WebhookClient(client.user.id, interaction.token).send(emb).then(cmd => {
-                const endTime = Date.now();
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("Ping")
-                .setDescription(`Pong! (${endTime - startTime}ms)`)
-                .setFooter(foot, avat)
-                new discord.WebhookClient(client.user.id, interaction.token).edit(emb);
-            });
+            new discord.WebhookClient(client.user.id, interaction.token).send(emb)
         }   
     });
 
