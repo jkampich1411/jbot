@@ -14,10 +14,11 @@ const moment = require("moment");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
-const { chdir } = require('process');
+const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
 const request = require('request');
 const { clearImmediate } = require('timers');
+const { executionAsyncResource } = require('async_hooks');
 const flags = {
 	DISCORD_EMPLOYEE: 'Discord Employee',
 	DISCORD_PARTNER: 'Discord Partner',
@@ -36,6 +37,8 @@ const flags = {
 require("moment-duration-format");
 moment.locale('de');
 
+
+//Nodemailer Statuspage
 var transporter = nodemailer.createTransport({
     host: "itm-hof.tk",
     port: 587,
@@ -72,6 +75,8 @@ var statusDEGRADED = {
     subject: '__',
     text: '_'
 };
+
+
 // DISCORD
 var client = new discord.Client;
 var servers = {};
@@ -188,8 +193,8 @@ function abfrageName(DCID, msg) {
         });
         client.api.applications(client.user.id).guilds('510412740364599317').commands.post({
            data: {
-               name: "ping",
-               description: "Bot Latency-Test"
+               name: "invite",
+               description: "Send Bot Invite Link"
            } 
         });
 
@@ -200,20 +205,9 @@ function abfrageName(DCID, msg) {
     client.on('disconnect', () => {
         console.log("Verbindung trennen");
     });
-    client.on('voiceStateUpdate', (oldMember, newMember) => {
-        let newUserChannel = newMember.voiceChannel;
-        let oldUserChannel = oldMember.voiceChannel;
-        if(oldUserChannel === undefined && newUserChannel !== undefined) {
-            if(newUserChannel.id === '727512957474570243') {
-                
-            }
 
 
-        } else if(newUserChannel === undefined) {
-
-        };
-    });
-
+    //Define Slashcommands
     client.ws.on('INTERACTION_CREATE', async interaction => {
         const cmd = interaction.data.name.toLowerCase();
         const args = interaction.data.options;
@@ -303,34 +297,113 @@ function abfrageName(DCID, msg) {
                     new discord.WebhookClient(client.user.id, interaction.token).send(emb);
                 }
             }
-        }
-
-        //PingCommand
-        if (cmd === "ping") {
-            var emb = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle("Ping")
-            .setDescription("Your ping is `" + `${Date.now() - cmd.createdTimestamp}` + " ms`")
-            .setFooter(foot)
-            client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        content: '_'
-                    }
-                }
-            })
-            new discord.WebhookClient(client.user.id, interaction.token).send(emb)
-        }   
+        }  
     });
 
+    //Commands
     client.on('message', (msg) => { 
         if(msg.author.bot) return;
+        if(!msg.content.startsWith(cfg.prefix)) return;
         const args = msg.content.trim().split(/ +/g);
         const cmd = args[0].slice(cfg.prefix.length).toLowerCase();
         const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
+        const queue = msg.client.queue;
+        const serverQueue = msg.client.guild.get(msg.guild.id);
 
+        //MusikBot
+
+        async function execute(msg, queue) {
+            
+            var embNotInVC = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle("Fehler:")
+            .setDescription(":x: Du musst in einem VoiceChannel sein!")
+            .setFooter(foot, avat);
+
+            var embNoPerms = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle("Fehler:")
+            .setDescription(":x: Ich brauche die Permission `CONNECT` und `SPEAK` / Verbinden und Sprechen!")
+            .setFooter(foot, avat);
+
+            var embUndefinedError = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle("Fehler")
+            .setDescription(`:x: Ein unbekannter Fehler ist aufgetreten!`)
+            .setFooter(foot, avat);
+
+
+            const args = msg.content.split(" ");
+            const voiceChannel = msg.member.voice.channel;
+            const perms = voiceChannel.permissionsFor(msg.client.user);
+            if(!voiceChannel) return msg.channel.send(embNotInVC);
+            if(!perms.has("CONNECT") || !perms.has("SPEAK")) return msg.channel.send(embNoPerms);
+            
+            const songInfo = await ytdl.getInfo(args[1]);
+            const song = {
+                title: songInfo.videoDetails.title,
+                url: songInfo.videoDetails.video_url,
+            };
+
+            var embSongQueued = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle(":heavy_check_mark:")
+            .setDescription(`${song.title} wurde zur Warteschlange hinzugefügt!`)
+            .setFooter(foot, avat);
+
+            if(!serverQueue) {
+                const queueContruct = {
+                    textChannel: msg.channel,
+                    voiceChannel: voiceChannel,
+                    connection: null,
+                    songs: [],
+                    volume: 5,
+                    playing: true,
+                };
+                serverQueue.set(msg.guild.id, queueContruct);
+                queueContruct.songs.push(song);
+                try {
+                    var connection = await voiceChannel.join();
+                    queueContruct.connection = connection;
+                    play(msg.guild, queueContruct.songs[0]);
+                } catch (e) {
+                    console.log(e)
+                    queue.delete(msg.guild.id);
+                    return msg.channel.send(embUndefinedError);
+                }
+            } else {
+            serverQueue.songs.push(song);
+            console.log(serverQueue.songs);
+            return msg.channel.send(embSongQueued);
+            }
+        }
+        function play(guild, song) {
+
+            var embNewStartedPlaying = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle(":heavy_check_mark:")
+            .setDescription(`Song **${song.title}** wird abgespielt!`)
+            .setFooter(foot, avat);
+
+            const serverQueue = queue.get(guild.id);
+            if (!song) {
+                serverQueue.voiceChannel.leave();
+                queue.delete(guild.id);
+                return;
+            }
+            const dispatcher = serverQueue.connection
+            .play(ytdl(song.url))
+            .on("finish", () => {
+                serverQueue.songs.shift();
+                play(guild, serverQueue.songs[0]);
+            })
+            .on("error", error => console.error(error));
+            dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+            serverQueue.textChannel.send(embNewStartedPlaying);
+        }
+
+        //Globalchat
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
             msg.delete()
             .then(msg => console.log(``))
@@ -345,6 +418,8 @@ function abfrageName(DCID, msg) {
             });             
             return;
         }
+
+        //Maybe not needing this anymore
         /* if (cmd === "userinfo") {
             let member = msg.mentions.users.first() || args[1] || msg.author;
             if(!member) member = msg.guild.members.cache.get(user);
@@ -393,27 +468,10 @@ function abfrageName(DCID, msg) {
             .addField(`Verifizierungslevel`, msg.guild.verificationLevel, true)
             .addField(`Erstellungsdatum`, moment.utc(msg.guild.createdAt).utcOffset(+2).format("dddd, MMMM Do YYYY, HH:mm:ss"), true)
             msg.channel.send(emb);
-        } */
-        if (msg.content === cfg.prefix + "ping") {
-            const startTime = Date.now();
-            var emb = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle("Ping")
-            .setDescription("Pong!")
-            .setFooter(foot, avat)
-            msg.channel.send(emb).then(msg => {
-                const endTime = Date.now();
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("Ping")
-                .setDescription(`Pong! (${endTime - startTime}ms)`)
-                .setFooter(foot, avat)
-                msg.edit(emb);
-            });
-        }   
-/*         if (cmd === "countdown") {
+        }
+         if (cmd === "countdown") {
             if (args[1] === "silvester") {
-                /* console.log(cfg.silvcntchid)
+                   console.log(cfg.silvcntchid)
                 for(var i = 0; i < cfg.silvcntchid.length; i++){
                     if (!(cfg.silvcntchid[i] === msg.channel.id)) {
                         cfg.silvcntchid.push(msg.channel.id);
@@ -438,8 +496,34 @@ function abfrageName(DCID, msg) {
                 }, 60000);
             }
         }
+         if(msg.content === cfg.prefix + "login") {
+             msgOutput(msg)
+             abfrageName(msg.author.id, msg);
+         }
+         if(msg.content === cfg.prefix + "logout") {
+             msgOutput(msg)
+             msg.member.removeRole('630052023487823882');
+             msg.reply("Du wurdest Abgemeldet!")
+         }  
 */
 
+        if (msg.content === cfg.prefix + "ping") {
+            const startTime = Date.now();
+            var emb = new discord.MessageEmbed()
+            .setColor("#DD2C00")
+            .setTitle("Ping")
+            .setDescription("Pong!")
+            .setFooter(foot, avat)
+            msg.channel.send(emb).then(msg => {
+                const endTime = Date.now();
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("Ping")
+                .setDescription(`Pong! (${endTime - startTime}ms)`)
+                .setFooter(foot, avat)
+                msg.edit(emb);
+            });
+        }   
         if(cmd === "help") {
             msg.delete()
             .then(msg => console.log(``))
@@ -484,18 +568,6 @@ function abfrageName(DCID, msg) {
                 msg.channel.send(emb);
             }
         }
-        // if(msg.content === cfg.prefix + "login") {
-        //     msgOutput(msg)
-        //     abfrageName(msg.author.id, msg);
-        // }
-        // if(msg.content === cfg.prefix + "logout") {
-        //     msgOutput(msg)
-        //     msg.member.removeRole('630052023487823882');
-        //     msg.reply("Du wurdest Abgemeldet!")
-        // }  
-        if(msg.content === cfg.prefix + "testcmd") {
-            embeds.error(msg.channel, 'das ist kein fehler', 'test');
-        }
         if(cmd === "chatsetup") {
             msg.delete()
             .then(msg => console.log(``))
@@ -534,18 +606,26 @@ function abfrageName(DCID, msg) {
             .setFooter(foot, avat)
             msg.channel.send(emb);
         }
-        if(cmd === "restart") {
-            if (msg.author.id === cfg.author) {
-                client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {
-                    msg.channel.send("ACHTUNG BOT RESTART");
-            });
+
+        if(msg.content.startsWith(`${cfg.prefix}_play`)) {
+            execute(msg, serverQueue);
+            return;
+        } else
+        if(msg.content.startsWith(`${cfg.prefix}_skip`)) {
+            skip(msg, serverQueue);
+            return;
+        } else
+        if(msg.content.startsWith(`${cfg.prefix}_stop`)) {
+            stop(msg, serverQueue);
+            return;
         }
-    }
 });
 
 client.login(cfg.token);
 
 // Twitch
+
+/* W(ork)i(n)P(rogress) */
 
 // Telegram
 var bot = new TelegramBot(cfg.telegramtoken, {polling: true});

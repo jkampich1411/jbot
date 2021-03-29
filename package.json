@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
-    "discord.js": "^12.2.0",
+    "@mapbox/node-pre-gyp": "^1.0.1",
+    "discord.js": "^12.5.1",
     "ffmpeg": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "fs": "^0.0.1-security",
@@ -19,12 +20,13 @@
     "moment": "^2.26.0",
     "moment-duration-format": "^2.3.2",
     "mysql": "^2.18.1",
+    "node-pre-gyp": "^0.17.0",
     "node-telegram-bot-api": "^0.50.0",
     "node.js": "^0.0.1-security",
     "nodemailer": "^6.4.17",
     "nodemon": "^2.0.4",
     "opusscript": "0.0.7",
     "request": "^2.88.2",
-    "ytdl-core": "^2.1.5"
+    "ytdl-core": "^4.0.0"
   }
 }
