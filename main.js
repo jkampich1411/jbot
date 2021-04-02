@@ -124,7 +124,7 @@ function abfrageName(DCID, msg) {
         client.user.setPresence({
             status: 'online',
             activity: {
-                name: `Loading......`,
+                name: `loading. Please Wait`,
                 type: 'PLAYING',
             }
         });
