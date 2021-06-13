@@ -78,7 +78,7 @@ var statusDEGRADED = {
 
 
 // DISCORD
-var client = new discord.Client;
+var client = new discord.Client({partials: ["MESSAGE", "CHANNEL", "REACTION"]});
 var servers = {};
 const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
 function abfrageName(DCID, msg) {
@@ -308,13 +308,30 @@ function abfrageName(DCID, msg) {
         const cmd = args[0].slice(cfg.prefix.length).toLowerCase();
         const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
-        const queue = msg.client.queue;
-        const serverQueue = msg.client.guild.get(msg.guild.id);
+//        const queue = msg.client.queue;
+//        const serverQueue = msg.client.guild.get(msg.guild.id);
+        
+        // RRoles
+        const verifyRole = msg.guild.roles.cache.get("518492777454108684");
+        const channelVerifyID = '510412740364599321'
+        const reactVertif = '✔️'
 
-        //MusikBot
+        client.on('messageReactionAdd', async (react, mem) => {
+            if(react.message.partial) await react.message.fetch();
+            if(react.partial) await react.fetch();
+            if(mem.bot) return;
+            if(!react.message.guild) return;
+
+            if(react.message.channel.id == channelVerifyID) {
+                if(react.emoji.name === reactVertif) {
+                    await react.message.guild.members.cache.get(mem.id).roles.add(verifyRole);
+                }
+            } else return;
+        });
+  
+/*         //MusikBot
 
         async function execute(msg, queue) {
-            
             var embNotInVC = new discord.MessageEmbed()
             .setColor("#DD2C00")
             .setTitle("Fehler:")
@@ -401,7 +418,7 @@ function abfrageName(DCID, msg) {
             .on("error", error => console.error(error));
             dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
             serverQueue.textChannel.send(embNewStartedPlaying);
-        }
+        } */
 
         //Globalchat
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
@@ -410,7 +427,7 @@ function abfrageName(DCID, msg) {
             .catch(console.error);             
             client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
                 var embed = new discord.MessageEmbed()
-                .setColor("#DD2C00")
+                .setColor("#afd8f8")
                 .setTitle(msg.author.tag)
                 .setDescription(msg.content)
                 .setFooter(msg.member.guild.name + " | " + `Auf ${client.guilds.cache.size} Servern`, avat)
@@ -626,7 +643,7 @@ client.login(cfg.token);
 // Twitch
 
 /* W(ork)i(n)P(rogress) */
-
+/*
 // Telegram
 var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
 bot.on('message', (msg) => {
@@ -649,3 +666,5 @@ bot.onText(/\/sdm/, function (msg) {
     client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
     bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
 });
+
+*/
