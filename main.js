@@ -308,117 +308,6 @@ function abfrageName(DCID, msg) {
         const cmd = args[0].slice(cfg.prefix.length).toLowerCase();
         const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
-//        const queue = msg.client.queue;
-//        const serverQueue = msg.client.guild.get(msg.guild.id);
-        
-        // RRoles
-        const verifyRole = msg.guild.roles.cache.get("518492777454108684");
-        const channelVerifyID = '510412740364599321'
-        const reactVertif = '✔️'
-
-        client.on('messageReactionAdd', async (react, mem) => {
-            if(react.message.partial) await react.message.fetch();
-            if(react.partial) await react.fetch();
-            if(mem.bot) return;
-            if(!react.message.guild) return;
-
-            if(react.message.channel.id == channelVerifyID) {
-                if(react.emoji.name === reactVertif) {
-                    await react.message.guild.members.cache.get(mem.id).roles.add(verifyRole);
-                }
-            } else return;
-        });
-  
-/*         //MusikBot
-
-        async function execute(msg, queue) {
-            var embNotInVC = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle("Fehler:")
-            .setDescription(":x: Du musst in einem VoiceChannel sein!")
-            .setFooter(foot, avat);
-
-            var embNoPerms = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle("Fehler:")
-            .setDescription(":x: Ich brauche die Permission `CONNECT` und `SPEAK` / Verbinden und Sprechen!")
-            .setFooter(foot, avat);
-
-            var embUndefinedError = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle("Fehler")
-            .setDescription(`:x: Ein unbekannter Fehler ist aufgetreten!`)
-            .setFooter(foot, avat);
-
-
-            const args = msg.content.split(" ");
-            const voiceChannel = msg.member.voice.channel;
-            const perms = voiceChannel.permissionsFor(msg.client.user);
-            if(!voiceChannel) return msg.channel.send(embNotInVC);
-            if(!perms.has("CONNECT") || !perms.has("SPEAK")) return msg.channel.send(embNoPerms);
-            
-            const songInfo = await ytdl.getInfo(args[1]);
-            const song = {
-                title: songInfo.videoDetails.title,
-                url: songInfo.videoDetails.video_url,
-            };
-
-            var embSongQueued = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle(":heavy_check_mark:")
-            .setDescription(`${song.title} wurde zur Warteschlange hinzugefügt!`)
-            .setFooter(foot, avat);
-
-            if(!serverQueue) {
-                const queueContruct = {
-                    textChannel: msg.channel,
-                    voiceChannel: voiceChannel,
-                    connection: null,
-                    songs: [],
-                    volume: 5,
-                    playing: true,
-                };
-                serverQueue.set(msg.guild.id, queueContruct);
-                queueContruct.songs.push(song);
-                try {
-                    var connection = await voiceChannel.join();
-                    queueContruct.connection = connection;
-                    play(msg.guild, queueContruct.songs[0]);
-                } catch (e) {
-                    console.log(e)
-                    queue.delete(msg.guild.id);
-                    return msg.channel.send(embUndefinedError);
-                }
-            } else {
-            serverQueue.songs.push(song);
-            console.log(serverQueue.songs);
-            return msg.channel.send(embSongQueued);
-            }
-        }
-        function play(guild, song) {
-
-            var embNewStartedPlaying = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle(":heavy_check_mark:")
-            .setDescription(`Song **${song.title}** wird abgespielt!`)
-            .setFooter(foot, avat);
-
-            const serverQueue = queue.get(guild.id);
-            if (!song) {
-                serverQueue.voiceChannel.leave();
-                queue.delete(guild.id);
-                return;
-            }
-            const dispatcher = serverQueue.connection
-            .play(ytdl(song.url))
-            .on("finish", () => {
-                serverQueue.songs.shift();
-                play(guild, serverQueue.songs[0]);
-            })
-            .on("error", error => console.error(error));
-            dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-            serverQueue.textChannel.send(embNewStartedPlaying);
-        } */
 
         //Globalchat
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
@@ -622,19 +511,6 @@ function abfrageName(DCID, msg) {
             .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobbot im Browser ein! Viel Spaß")
             .setFooter(foot, avat)
             msg.channel.send(emb);
-        }
-
-        if(msg.content.startsWith(`${cfg.prefix}_play`)) {
-            execute(msg, serverQueue);
-            return;
-        } else
-        if(msg.content.startsWith(`${cfg.prefix}_skip`)) {
-            skip(msg, serverQueue);
-            return;
-        } else
-        if(msg.content.startsWith(`${cfg.prefix}_stop`)) {
-            stop(msg, serverQueue);
-            return;
         }
 });
 
