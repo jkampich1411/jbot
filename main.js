@@ -300,6 +300,27 @@ function abfrageName(DCID, msg) {
         }  
     });
 
+            //Globalchat
+    client.on('message', (msg)=> {
+        const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
+        const avat = msg.author.avatarURL();
+            if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
+                msg.delete()
+                .then(msg => console.log(``))
+                .catch(console.error);             
+                client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
+                    var embed = new discord.MessageEmbed()
+                    .setColor("#afd8f8")
+                    .setTitle(msg.author.tag)
+                    .setDescription(msg.content)
+                    .setFooter(msg.member.guild.name + " | " + `Auf ${client.guilds.cache.size} Servern`, avat)
+                    channel.send(embed)    
+                });             
+            return;
+        }
+    });
+
+
     //Commands
     client.on('message', (msg) => { 
         if(msg.author.bot) return;
@@ -309,21 +330,7 @@ function abfrageName(DCID, msg) {
         const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
 
-        //Globalchat
-        if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
-            msg.delete()
-            .then(msg => console.log(``))
-            .catch(console.error);             
-            client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
-                var embed = new discord.MessageEmbed()
-                .setColor("#afd8f8")
-                .setTitle(msg.author.tag)
-                .setDescription(msg.content)
-                .setFooter(msg.member.guild.name + " | " + `Auf ${client.guilds.cache.size} Servern`, avat)
-                channel.send(embed)    
-            });             
-            return;
-        }
+
 
         //Maybe not needing this anymore
         /* if (cmd === "userinfo") {
