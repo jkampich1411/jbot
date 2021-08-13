@@ -505,7 +505,7 @@ function abfrageName(DCID, msg) {
         }
         if(cmd === "userinfo") {
             if(args[1].toLowerCase() === "mc" || args[1].toLowerCase() === "minecraft") {
-                mcUserInfo.fetch(args[2], "dasisteintestundgehtnochnicht", (res) => {
+                mcUserInfo.fetch(args[2], "https://meta.thejakobcraft.xyz:8080/skin", (res) => {
                     
                     let emb = new discord.MessageEmbed()
                     .setColor('#DD2C00')
@@ -520,7 +520,7 @@ function abfrageName(DCID, msg) {
                         { name: 'Dashed UUID:', value: res[0][1] }
                     )
                     .addField('\u200B', '**Past Usernames:**', false)
-
+                    .addField('Skin Render:', `[Click Me!](https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html)`)
                     for(let i = 0; i<res[2].length; i++) {
                         emb.addField(res[2][i], '\u200B', true);
                     }
