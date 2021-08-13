@@ -17,6 +17,7 @@ const nodemon = require('nodemon');
 const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
 const request = require('request');
+const mcUserInfo = require('./MCInfo.js');
 const { clearImmediate } = require('timers');
 const { executionAsyncResource } = require('async_hooks');
 const flags = {
@@ -114,12 +115,6 @@ function abfrageName(DCID, msg) {
           seconds
         };
       }
-    // var con = mysql.createConnection({
-    //     host: "remotemysql.com",
-    //     user: "Mo5fs8XahO",
-    //     password: "dJQlwYqVdh",
-    //     database: "Mo5fs8XahO"
-    //   });
     client.on('ready', () => {
         client.user.setPresence({
             status: 'online',
@@ -300,7 +295,7 @@ function abfrageName(DCID, msg) {
         }  
     });
 
-            //Globalchat
+    //Globalchat
     client.on('message', (msg)=> {
         const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
@@ -508,6 +503,54 @@ function abfrageName(DCID, msg) {
                 }
             }
         }
+        if(cmd === "userinfo") {
+            if(args[1].toLowerCase() === "mc" || args[1].toLowerCase() === "minecraft") {
+                mcUserInfo.fetch(args[2], "dasisteintestundgehtnochnicht", (res) => {
+                    
+                    let emb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setFooter(foot, avat)
+                    .setTimestamp()
+                    //  Now the Real Shit Begins 
+                    .setTitle(`Minecraft - Userinfo: ${args[2]}`)
+                    .setDescription(`Information about the Minecraft Player ${args[2]}`)
+                    .addFields(
+                        { name: '⠀', value: '**Player UUIDs:**' },
+                        { name: 'Undashed UUID:', value: res[0][0] },
+                        { name: 'Dashed UUID:', value: res[0][1] }
+                    )
+                    .addField('\u200B', '**Past Usernames:**', false)
+
+                    for(let i = 0; i<res[2].length; i++) {
+                        emb.addField(res[2][i], '\u200B', true);
+                    }
+
+                    msg.channel.send(emb);
+                });
+            }
+
+            if(args[1].toLowerCase() === "module") {
+                if(args[2].toLowerCase() === "mc") {
+                    mcUserInfo.moduleInfo((call) => {
+                    let emb = new discord.MessageEmbed()
+                        .setColor('#DD2C00')
+                        .setFooter(foot, avat)
+                        .setTitle('MC User Stuff Getter')
+                        .setDescription(`**${call}**`);
+                    msg.channel.send(emb)});
+                }
+                if(args[2].toLowerCase() === "secretmc") {
+                    mcUserInfo.secretModuleInfo((call) => {
+                        let emb = new discord.MessageEmbed()
+                            .setColor('#DD2C00')
+                            .setFooter(foot, avat)
+                            .setTitle('MC User Stuff Getter')
+                            .setDescription(`**${call}**`);
+                        msg.channel.send(emb)});
+                }
+            }
+        }
+
         if(msg.content === cfg.prefix + "invite") {
             msg.delete()
             .then(msg => console.log(``))
@@ -538,7 +581,6 @@ bot.on('message', (msg) => {
 bot.onText(/\/abt/, function (msg) {
     bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findet man auf Discord!`);
 });
-
 // ALL
 bot.onText(/\/sdm/, function (msg) {
     let chanid = "733638201935265812";
@@ -549,5 +591,4 @@ bot.onText(/\/sdm/, function (msg) {
     client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
     bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
 });
-
 */
