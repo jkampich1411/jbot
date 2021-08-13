@@ -520,10 +520,10 @@ function abfrageName(DCID, msg) {
                         { name: 'Dashed UUID:', value: res[0][1] }
                     )
                     .addField('\u200B', '**Past Usernames:**', false)
-                    .addField('Skin Render:', `[Click Me!](https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html)`)
                     for(let i = 0; i<res[2].length; i++) {
                         emb.addField(res[2][i], '\u200B', true);
                     }
+                    emb.addField('Skin Render:', `[Click Me!](https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html)`);
 
                     msg.channel.send(emb);
                 });
