@@ -567,7 +567,7 @@ function abfrageName(DCID, msg) {
 
         if(cmd === "update") {
             if(msg.author.id === cfg.author) {
-                msg.reply("ok")
+                msg.reply("ok, test done")
             } else {
                 tellNoAccess((emb) => {
                     msg.channel.send(emb);
