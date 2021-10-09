@@ -1,4 +1,4 @@
-/* 
+/*
     Name: JBot
     Author: TheJakobCraft
     Version: 1.0.0
@@ -11,6 +11,7 @@ const fs = require('fs');
 const mysql = require("mysql");
 const ytdl = require("ytdl-core");
 const moment = require("moment");
+const qcr = require("qrcode");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
@@ -115,6 +116,16 @@ function abfrageName(DCID, msg) {
           seconds
         };
       }
+
+    function tellNoAccess(_call, footer, avatar) {
+        let emb = new discord.MessageEmbed()
+            .setColor('#DD2C00')
+            .setFooter(footer, avatar)
+            .setTitle('Error: You do not have access to that!')
+            .setDescription('You do not have access to this command');
+        _call(emb);
+    }
+
     client.on('ready', () => {
         client.user.setPresence({
             status: 'online',
@@ -504,6 +515,9 @@ function abfrageName(DCID, msg) {
             }
         }
         if(cmd === "userinfo") {
+            if(!args[1]) return;
+            if(!args[2]) return;
+
             if(args[1].toLowerCase() === "mc" || args[1].toLowerCase() === "minecraft") {
                 mcUserInfo.fetch(args[2], "https://meta.thejakobcraft.xyz:8080/skin", (res) => {
                     
@@ -548,6 +562,16 @@ function abfrageName(DCID, msg) {
                             .setDescription(`**${call}**`);
                         msg.channel.send(emb)});
                 }
+            }
+        }
+
+        if(cmd === "update") {
+            if(msg.author.id === cfg.author) {
+                msg.reply("ok")
+            } else {
+                tellNoAccess((emb) => {
+                    msg.channel.send(emb);
+                }, foot, avat);
             }
         }
 
