@@ -12,6 +12,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
     "@mapbox/node-pre-gyp": "^1.0.1",
+    "dayjs": "^1.10.7",
     "discord.js": "^12.5.3",
     "ffmpeg": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",

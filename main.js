@@ -11,7 +11,9 @@ const fs = require('fs');
 const mysql = require("mysql");
 const ytdl = require("ytdl-core");
 const moment = require("moment");
+const dayjs = require("dayjs")
 const qcr = require("qrcode");
+const https = require("https");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
@@ -333,7 +335,7 @@ function abfrageName(DCID, msg) {
         if(!msg.content.startsWith(cfg.prefix)) return;
         const args = msg.content.trim().split(/ +/g);
         const cmd = args[0].slice(cfg.prefix.length).toLowerCase();
-        const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
+        const foot = `Angefragt von ${msg.author.tag} • Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
 
 
@@ -567,7 +569,47 @@ function abfrageName(DCID, msg) {
 
         if(cmd === "update") {
             if(msg.author.id === cfg.author) {
-                msg.reply("ok, test done")
+                
+                var getReleaseInfo = async (_call) => {
+                    let opt = {
+                        hostname: 'api.github.com',
+                        port: 443,
+                        path: '/repos/jkampich1411/jbot-releases/releases/latest',
+                        headers: {
+                            'User-Agent': 'jkdev API Agent/0.1'
+                        },
+                        method: 'GET'
+                    }
+                    
+                    let req = https.request(opt, res => {
+                        let datachunks = [];
+                        res.on('data', d => {
+                            datachunks.push(d);
+                        }).on('end', function() {
+                            let dat = Buffer.concat(datachunks);
+                            let data = JSON.parse(dat);
+
+                            _call(data.name, data.tag_name, data.body, data.published_at, data.author.login, data.author.avatar_url);
+                        });
+                    });
+
+                    req.on('error', err => console.error(err));
+                    req.end();
+                }
+
+                getReleaseInfo((name, tag_name, body, published_at, author, avatar_url) => {
+                    client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(ch => {
+                            var emb = new discord.MessageEmbed()
+                                .setColor('#0099ff')
+                                .setTitle(name)
+                                .setURL('https://github.com/jkampich1411/jbot-releases/releases/latest')
+                                .setAuthor(`Published by ${author}`, avatar_url, `https://thejakobcraft.xyz`)
+                                .setDescription(body)
+                                .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
+                            ch.send(emb)
+                    });
+                });
+
             } else {
                 tellNoAccess((emb) => {
                     msg.channel.send(emb);
