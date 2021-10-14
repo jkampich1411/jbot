@@ -11,8 +11,10 @@ const fs = require('fs');
 const mysql = require("mysql");
 const ytdl = require("ytdl-core");
 const moment = require("moment");
-const dayjs = require("dayjs")
-const qcr = require("qrcode");
+const dayjs = require("dayjs");
+const tz = require('dayjs/plugin/timezone');
+dayjs.extend(tz);
+const qrg = require("qrcode");
 const https = require("https");
 const TelegramBot = require('node-telegram-bot-api');
 const { isAbsolute } = require('path');
@@ -21,6 +23,7 @@ const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
 const request = require('request');
 const mcUserInfo = require('./MCInfo.js');
+const qrgen = require('./qrgen.js');
 const { clearImmediate } = require('timers');
 const { executionAsyncResource } = require('async_hooks');
 const flags = {
@@ -164,10 +167,20 @@ function abfrageName(DCID, msg) {
                         type: 'LISTENING'
                     }
                 });
+                activNum = 3;
+            } else if(activNum === 3) {
+                client.user.setPresence({
+                    status: 'online',
+                    activity: {
+                        name: `auf https://thejakobcraft.xyz`,
+                        type: 'WATCHING'
+                    }
+                });
                 activNum = 0;
             }
         }, 10 * 1000);
         console.log(`Eingeloggt als ${client.user.username}`);
+        qrgen.runMeFirst();
         console.log(`Auf ${client.guilds.cache.size} Servern!`)
         // con.connect(function(err) {
         //     if (err) throw err;
@@ -375,76 +388,8 @@ function abfrageName(DCID, msg) {
                 ])
             msg.channel.send(emb);
         }
-        if(cmd === "serverinfo") {
-            const emb = new discord.MessageEmbed()
-            .setAuthor(msg.guild.name, msg.guild.iconURL())
-            .setThumbnail(msg.guild.iconURL())
-            .addField(`Inhaber`, msg.guild.owner, true)
-            .addField(`ID`, msg.guild.id, true)
-            .addField(`Mitglieder`, msg.guild.memberCount, true)
-            .addField(`Bots`, msg.guild.members.filter(mem => mem.user.bot === true).size, true)
-            .addField(`Online`, msg.guild.members.filter(mem => mem.presence.status != "offline").size, true)
-            .addField(`Offline`, msg.guild.members.filter(mem => mem.presence.status === "offline").size, true)
-            .addField(`Rollen`, msg.guild.roles.cache.size, true)
-            .addField(`Verifizierungslevel`, msg.guild.verificationLevel, true)
-            .addField(`Erstellungsdatum`, moment.utc(msg.guild.createdAt).utcOffset(+2).format("dddd, MMMM Do YYYY, HH:mm:ss"), true)
-            msg.channel.send(emb);
-        }
-         if (cmd === "countdown") {
-            if (args[1] === "silvester") {
-                   console.log(cfg.silvcntchid)
-                for(var i = 0; i < cfg.silvcntchid.length; i++){
-                    if (!(cfg.silvcntchid[i] === msg.channel.id)) {
-                        cfg.silvcntchid.push(msg.channel.id);
-                        msg.reply(cfg.silvcntchid)
-                    } 
-                }
-                msg.reply(`OK ${cfg.silvcntchid.length}`)
-                setInterval(() => {
-                    var dl = '1/1/2021';
-                    var getSilvTime = `${getTimeRemaining(dl).days}d:${getTimeRemaining(dl).hours}h:${getTimeRemaining(dl).minutes}m`;
-                    var emb = new discord.MessageEmbed()
-                    .setColor("#DD2C00")
-                    .setTitle("TTS - Time To Silvester")
-                    .setDescription("SilvesterCountdown!")
-                    .addFields(
-                        { name: 'Countdown:', value: `${getSilvTime}` },
-                        { name: 'Über mir findest du den Countdown!', value: '\u200B', inline: true },
-                        { name: '\u200B', value: '\u200B' },
-                    )
-                    .setFooter(foot, avat)
-                    msg.channel.send(emb)
-                }, 60000);
-            }
-        }
-         if(msg.content === cfg.prefix + "login") {
-             msgOutput(msg)
-             abfrageName(msg.author.id, msg);
-         }
-         if(msg.content === cfg.prefix + "logout") {
-             msgOutput(msg)
-             msg.member.removeRole('630052023487823882');
-             msg.reply("Du wurdest Abgemeldet!")
-         }  
 */
 
-        if (msg.content === cfg.prefix + "ping") {
-            const startTime = Date.now();
-            var emb = new discord.MessageEmbed()
-            .setColor("#DD2C00")
-            .setTitle("Ping")
-            .setDescription("Pong!")
-            .setFooter(foot, avat)
-            msg.channel.send(emb).then(msg => {
-                const endTime = Date.now();
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("Ping")
-                .setDescription(`Pong! (${endTime - startTime}ms)`)
-                .setFooter(foot, avat)
-                msg.edit(emb);
-            });
-        }   
         if(cmd === "help") {
             msg.delete()
             .then(msg => console.log(``))
@@ -457,14 +402,6 @@ function abfrageName(DCID, msg) {
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else 
-            if(args[1] === 'invite') {
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("CMD: jc!invite")
-                .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
-                .setFooter(foot, avat)
-                msg.channel.send(emb);
-            } else
             if(args[1] === 'chatsetup') {
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
@@ -473,22 +410,40 @@ function abfrageName(DCID, msg) {
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else
-            if(args[1] === 'ping') {
+            if(args[1] === 'invite') {
                 var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("CMD: jc!ping")
-                .setDescription("Dieser Command sendet die Bot-Latency!")
+                .setColor('#0099ff')
+                .setTitle("Der Invite Link")
+                .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobbot im Browser ein! Viel Spaß")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
+            } else
+            if(args[1] === 'ping') {
+                const startTime = Date.now();
+                var emb = new discord.MessageEmbed()
+                .setColor("#DD2C00")
+                .setTitle("Ping")
+                .setDescription("Pong!")
+                .setFooter(foot, avat)
+                msg.channel.send(emb).then(msg => {
+                    const endTime = Date.now();
+                    var emb = new discord.MessageEmbed()
+                    .setColor("#DD2C00")
+                    .setTitle("Ping")
+                    .setDescription(`Pong! (${endTime - startTime}ms)`)
+                    .setFooter(foot, avat)
+                    msg.edit(emb);
+                });
             } else {
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
-                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.")
+                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\nMit jc!help invite bekommst du den Invite Link von diesem Bot!\nMit jc!help ping bekommst du die Bot-Latency!")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             }
         }
+
         if(cmd === "chatsetup") {
             msg.delete()
             .then(msg => console.log(``))
@@ -508,7 +463,7 @@ function abfrageName(DCID, msg) {
                     var emb = new discord.MessageEmbed();
                     emb.setColor("#0099ff")
                     emb.setTitle("Den Globalchat erstellen!")
-                    emb.setDescription(`Anscheinend willst du meinen Globalchat verwenden! Deshalb habe ich einen Textkanal erstellt der 'jc-chat' heißt. Dies ist mein Globalchat! Viel Spaß`)
+                    emb.setDescription(`Anscheinend willst du meinen Globalchat verwenden! Deshalb habe ich einen Textkanal erstellt der 'jc-chat' heißt. Dies ist mein Globalchat! Viel Spaß`,)
                     emb.setFooter(foot, avat)
                     msg.channel.send("", emb).then((m) => {
                         message = m;
@@ -516,6 +471,36 @@ function abfrageName(DCID, msg) {
                 }
             }
         }
+
+        if(cmd === "qr") {
+            var bgc;
+            var fgc;
+            if(!args[1]) return;
+            if(!args[2]) return;
+            if(!args[3]) bgc = null;
+            else if(args[3]) bgc =args[3];
+            if(!args[4]) fgc = null;
+            else if(args[4]) fgc =args[4];
+
+            if(args[1].toLowerCase() === "gen" || args[1].toLowerCase() === "generate") {
+                qrgen.runCMD(args[2], bgc, fgc, (uuid) => {
+                    let URL = `https://meta.thejakobcraft.xyz:8080/qr/${uuid}.png`;
+
+                    var emb = new discord.MessageEmbed()
+                    .setColor('#DD2C00')
+                    .setFooter(foot, avat)
+                    .setTimestamp()
+                    //  Now the Real Shit Begins 
+                    .setTitle(`QRcode - generated`)
+                    .setDescription(`Here is your generated QR Code!`)
+                    .setImage(URL);
+                    msg.channel.send(emb);
+
+                    qrgen.delCMD(uuid);
+                });
+            }
+        }
+
         if(cmd === "userinfo") {
             if(!args[1]) return;
             if(!args[2]) return;
@@ -605,7 +590,7 @@ function abfrageName(DCID, msg) {
                                 .setURL('https://github.com/jkampich1411/jbot-releases/releases/latest')
                                 .setAuthor(`A new feature update is ready!`, avatar_url, `https://thejakobcraft.xyz`)
                                 .setDescription(body)
-                                .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
+                                .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).tz('CEST').format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
                             ch.send(emb)
                     });
                 });
@@ -616,19 +601,7 @@ function abfrageName(DCID, msg) {
                 }, foot, avat);
             }
         }
-
-        if(msg.content === cfg.prefix + "invite") {
-            msg.delete()
-            .then(msg => console.log(``))
-            .catch(console.error);
-            var emb = new discord.MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle("Der Invite Link")
-            .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobbot im Browser ein! Viel Spaß")
-            .setFooter(foot, avat)
-            msg.channel.send(emb);
-        }
-});
+    });
 
 client.login(cfg.token);
 
