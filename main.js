@@ -590,7 +590,7 @@ function abfrageName(DCID, msg) {
                                 .setURL('https://github.com/jkampich1411/jbot-releases/releases/latest')
                                 .setAuthor(`A new feature update is ready!`, avatar_url, `https://thejakobcraft.xyz`)
                                 .setDescription(body)
-                                .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).tz('Europe/Vienna').format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
+                                .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
                             ch.send(emb)
                     });
                 });
