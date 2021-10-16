@@ -499,6 +499,16 @@ function abfrageName(DCID, msg) {
                     qrgen.delCMD(uuid);
                 });
             }
+
+            if(args[1].toLowerCase() === "mod" || args[1].toLowerCase() === "module") {
+                qrgen.moduleInfo((call) => {
+                    let emb = new discord.MessageEmbed()
+                        .setColor('#DD2C00')
+                        .setFooter(foot, avat)
+                        .setTitle('QRGen')
+                        .setDescription(`**${call}**`);
+                    msg.channel.send(emb)});
+            }
         }
 
         if(cmd === "userinfo") {
