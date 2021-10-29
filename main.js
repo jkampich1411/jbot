@@ -85,9 +85,9 @@ var statusDEGRADED = {
 
 
 // DISCORD
+const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
 var client = new discord.Client({partials: ["MESSAGE", "CHANNEL", "REACTION"]});
 var servers = {};
-const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
 function abfrageName(DCID, msg) {
     var sql = 'SELECT * FROM users WHERE discord_id = ' + mysql.escape(DCID);
         con.query(sql, function (err, result, fields) {
