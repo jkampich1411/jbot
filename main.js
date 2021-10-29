@@ -86,7 +86,9 @@ var statusDEGRADED = {
 
 // DISCORD
 const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
-var client = new discord.Client({partials: ["MESSAGE", "CHANNEL", "REACTION"]});
+var client = new discord.Client(
+        {partials: ["MESSAGE", "CHANNEL", "REACTION"]}
+    );
 var servers = {};
 function abfrageName(DCID, msg) {
     var sql = 'SELECT * FROM users WHERE discord_id = ' + mysql.escape(DCID);
@@ -340,7 +342,6 @@ function abfrageName(DCID, msg) {
             return;
         }
     });
-
 
     //Commands
     client.on('message', (msg) => { 
@@ -609,6 +610,80 @@ function abfrageName(DCID, msg) {
                 tellNoAccess((emb) => {
                     msg.channel.send(emb);
                 }, foot, avat);
+            }
+        }
+
+        if(cmd === "makeitspooky") {
+            var delRole = msg.guild.roles.cache.find(role => role.name === 'thejakobutils_temp');
+            if(delRole) delRole.delete('brauch ich net mehr smh');
+
+            function CreateRole() {
+                msg.guild.roles.create({
+                    data: {
+                        name: 'thejakobutils_temp',
+                        color: 'BLUE',
+                    },
+                    reason: 'Temp Rolle für Spooky! Ich lösche die Rolle wieder! Versprochen!'
+                });
+            }
+
+            function RolesCreated() {
+                var role = msg.guild.roles.cache.some(role => role.name === 'thejakobutils_temp');
+                var guildMember = msg.mentions.members.first();
+    
+                if(role) guildMember.roles.add(role);
+                else msg.channel.send('role does not exist');
+    
+                msg.reply(`you can now use \`\`\`jc!spookifier\`\`\``);
+            }
+
+            setTimeout(CreateRole, 1000);
+            setTimeout(RolesCreated, 1500);
+
+        }
+
+        if(cmd === "spookifier") {
+            var emojis = [
+                '🎃',
+                '🦇',
+                '👻',
+                '🕸',
+                '🧛‍♀️',
+                '🧛‍♂️',
+                '🧛'
+            ];
+    
+            var channelNames = [
+                'jc-spookchat-replacecontent-',
+                'jc-spookierchat-replacecontent-',
+                'jc-iamspookychat-replacecontent-',
+                'jc-scarychat-replacecontent-',
+                'jc-scarierchat-replacecontent-',
+                'jc-totallynotscarychat-replacecontent-',
+                'jc-itsspookyseason-replacecontent-'
+            ];
+    
+            var tempChannelName = channelNames[Math.floor(Math.random()*channelNames.length)];
+            var tempEmoji = emojis[Math.floor(Math.random()*emojis.length)];
+    
+            if(msg.member.roles.cache.find(role => role.name === 'thejakobutils_temp')) {
+                client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(ch => {
+                    var ChannelName = tempChannelName.replace('-replacecontent-', tempEmoji);
+    
+                    var emb = new discord.MessageEmbed()
+                        .setColor('#0099ff')
+                        .setTitle('Spookifing everything!')
+                        .setDescription('Oh, Spooky!')
+                        .setFooter(foot, avat);
+                    msg.channel.send(emb);
+    
+                    ch.setName(ChannelName)
+
+                    var delRole = msg.guild.roles.cache.find(role => role.name === 'thejakobutils_temp');
+                    if(delRole) delRole.delete('brauch ich net mehr smh');
+                });
+
+
             }
         }
     });
