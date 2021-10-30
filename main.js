@@ -24,6 +24,7 @@ const nodemailer = require('nodemailer');
 const request = require('request');
 const mcUserInfo = require('./MCInfo.js');
 const qrgen = require('./qrgen.js');
+const utils = require('./classes/utils.js');
 const { clearImmediate } = require('timers');
 const { executionAsyncResource } = require('async_hooks');
 const flags = {
