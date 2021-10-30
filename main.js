@@ -7,6 +7,8 @@
 */
 // IMPORTS
 const discord = require('discord.js');
+const discordRest = require('@discordjs/rest');
+const discordRoutes = require('discord-api-types/v9');
 const fs = require('fs');
 const mysql = require("mysql");
 const ytdl = require("ytdl-core");
@@ -87,43 +89,34 @@ var statusDEGRADED = {
 
 // DISCORD
 const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
-var client = new discord.Client(
-        {partials: ["MESSAGE", "CHANNEL", "REACTION"]}
-    );
-var servers = {};
-function abfrageName(DCID, msg) {
-    var sql = 'SELECT * FROM users WHERE discord_id = ' + mysql.escape(DCID);
-        con.query(sql, function (err, result, fields) {
-            if (err) throw err;
-            if (!result.length) {
-                console.log("abfrageName(): False"); 
-                msg.reply("Du bist nicht registriert! Bitte kontaktiere TheJakobCraft!")      
-            } else {
-                console.log("abfrageName(): True");
-                msg.reply("Ok");  
-                msg.member.addRole('630052023487823882');
-            }
-        });
-        return;
-    };
-    function msgOutput(msg) {
-        console.log(msg + " " +msg.author.username);
-    }
-    function getTimeRemaining(et){
-        var total = Date.parse(et) - Date.parse(new Date());
-        var seconds = Math.floor( (total/1000) % 60 );
-        var minutes = Math.floor( (total/1000/60) % 60 );
-        var hours = Math.floor( (total/(1000*60*60)) % 24 );
-        var days = Math.floor( total/(1000*60*60*24) );
-      
-        return {
-          total,
-          days,
-          hours,
-          minutes,
-          seconds
-        };
-      }
+const slashCmds = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+var client = new discord.Client({
+        partials: ["MESSAGE", "CHANNEL", "REACTION"],
+        intents: [
+            discord.Intents.FLAGS.GUILDS,
+            discord.Intents.FLAGS.GUILD_BANS,
+            discord.Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
+            discord.Intents.FLAGS.GUILD_INTEGRATIONS,
+            discord.Intents.FLAGS.GUILD_INVITES,
+            discord.Intents.FLAGS.GUILD_MEMBERS,
+            discord.Intents.FLAGS.GUILD_MESSAGES,
+            discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+            discord.Intents.FLAGS.GUILD_MESSAGE_TYPING,
+            discord.Intents.FLAGS.GUILD_PRESENCES,
+            discord.Intents.FLAGS.GUILD_VOICE_STATES,
+            discord.Intents.FLAGS.GUILD_WEBHOOKS,
+
+            discord.Intents.FLAGS.DIRECT_MESSAGES,
+            discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+            discord.Intents.FLAGS.DIRECT_MESSAGE_TYPING
+        ]
+    });
+client.commands = new discord.Collection();
+
+var restClient = new discordRest.REST({
+        version: "9"
+    }).setToken(cfg.token);
 
     function tellNoAccess(_call, footer, avatar) {
         let emb = new discord.MessageEmbed()
@@ -134,93 +127,87 @@ function abfrageName(DCID, msg) {
         _call(emb);
     }
 
+    function throwSlashCommandError(_call, footer, cmdName) {
+        let emb = new discord.MessageEmbed()
+            .setColor('#DD2C00')
+            .setFooter(footer)
+            .setTitle('Error: An error occoured while running!')
+            .setDescription(`An error occoured while running ${cmdName}`);
+        _call(emb);
+    }
+
+    async function registerGuildSlashCommands(commands, guildId) {
+        var cmds = [];
+        
+        commands.forEach(cms => {
+            const command = require(`./commands/${cms}`);
+
+            cmds.push(command.data.toJSON());
+            client.commands.set(command.data.name, command);
+        });
+
+        return await restClient.put(discordRoutes.Routes.applicationGuildCommands(client.user.id, guildId), {
+            body: cmds
+        })
+            .then(() => console.log(`Registered ${cmds.length} Slash-Commands!`))
+            .catch(console.error);
+    }
+
     client.on('ready', () => {
-        client.user.setPresence({
-            status: 'online',
+        client.user.setStatus('dnd');
+        qrgen.runMeFirst();
+        registerGuildSlashCommands(slashCmds, '510412740364599317');
+
+        client.user.setActivity({
+            name: `loading. Please Wait`.toString(),
             activity: {
-                name: `loading. Please Wait`,
-                type: 'PLAYING',
+                type: 'PLAYING'
             }
         });
         let activNum = 0;
         setInterval(function() {
             if(activNum === 0) {
-                client.user.setPresence({
-                    status: 'online',
+                client.user.setActivity({
+                    name: `auf ${client.guilds.cache.size} Server`.toString(),
                     activity: {
-                        name: `auf ${client.guilds.cache.size} Server`,
                         type: 'WATCHING'
                     }
                 });
                 activNum = 1;
             } else if(activNum === 1) {
-                client.user.setPresence({
-                    status: 'online',
+                client.user.setActivity({
+                    name: `euren Nachrichten`.toString(),
                     activity: {
-                        name: `euren Nachrichten`,
                         type: 'LISTENING'
                     }
                 });
                 activNum = 2;
             } else if(activNum === 2) {
-                client.user.setPresence({
-                    status: 'online',
+                client.user.setActivity({
+                    name: `jc!help`.toString(),
                     activity: {
-                        name: `jc!help`,
                         type: 'LISTENING'
                     }
                 });
                 activNum = 3;
             } else if(activNum === 3) {
-                client.user.setPresence({
-                    status: 'online',
+                client.user.setActivity({
+                    name: `auf https://thejakobcraft.xyz`.toString(),
                     activity: {
-                        name: `auf https://thejakobcraft.xyz`,
                         type: 'WATCHING'
                     }
                 });
                 activNum = 0;
             }
         }, 10 * 1000);
-        console.log(`Eingeloggt als ${client.user.username}`);
-        qrgen.runMeFirst();
-        console.log(`Auf ${client.guilds.cache.size} Servern!`)
-        // con.connect(function(err) {
-        //     if (err) throw err;
-        //     con.query(`SELECT * FROM users`, function (err, result, fields) {
-        //       if (err) throw err;
-        //       console.log(result);
-        //     });
-        //   });
-        transporter.sendMail(statusUP, function(error, info){
+        console.log(`Eingeloggt als ${client.user.username} | Auf ${client.guilds.cache.size} Servern!`);
+        transporter.sendMail(statusUP, function(error, info) {
             if (error) {
               console.log(error);
             } else {
               console.log();
             }
           });
-        
-        //register SlashCMDS
-        client.api.applications(client.user.id).guilds('510412740364599317').commands.post({
-            data: {
-                name: "help",
-                description: "The Help Command",
-                options: [
-                    {
-                        "name": "type",
-                        "description": "Choose Helppage",
-                        "type": 3,
-                        "required": false
-                    }
-                ]
-            }
-        });
-        client.api.applications(client.user.id).guilds('510412740364599317').commands.post({
-           data: {
-               name: "invite",
-               description: "Send Bot Invite Link"
-           } 
-        });
 
     });
     client.on('reconnecting', () => {
@@ -231,166 +218,52 @@ function abfrageName(DCID, msg) {
     });
 
 
-    //Define Slashcommands
-    client.ws.on('INTERACTION_CREATE', async interaction => {
-        const cmd = interaction.data.name.toLowerCase();
-        const args = interaction.data.options;
-        const foot = `Auf ${client.guilds.cache.size} Servern`;
+    // Use Slashcommands
+    client.on('interactionCreate', async (interaction) => {
+        if(!interaction.isCommand()) return;
+        const footer = `Angefragt von ${interaction.user.tag} • Auf ${client.guilds.cache.size} Servern`;
+        const avatar = interaction.user.avatarURL();
+        const command = client.commands.get(interaction.commandName);
 
+        if(command) try {
+            await command.execute(interaction, footer, avatar);
+        } catch(e) {
+            console.error(e);
 
-        //HelpCommand
-        if(cmd === "help") {
-            if(!args) {
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("Du brauchst Hilfe?")
-                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!invite\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.")
-                .setFooter(foot)
-                client.api.interactions(interaction.id, interaction.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            content: '_'
-                        }
-                    }
-                })
-                new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-            } else { 
-                if (args[0]["value"] === 'help') {
-                    var emb = new discord.MessageEmbed()
-                    .setColor("#DD2C00")
-                    .setTitle("CMD: jc!help")
-                    .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
-                    .setFooter(foot)
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: '_'
-                            }
-                        }
-                    })
-                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-                } else 
-                if(args[0]["value"] === 'invite') {
-                    var emb = new discord.MessageEmbed()
-                    .setColor("#DD2C00")
-                    .setTitle("CMD: jc!invite")
-                    .setDescription("Dieser Command sendet dir den Invite-Link dieses Bots.")
-                    .setFooter(foot)
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: '_'
-                            }
-                        }
-                    })
-                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-                } else
-                if(args[0]["value"] === 'chatsetup') {
-                    var emb = new discord.MessageEmbed()
-                    .setColor("#DD2C00")
-                    .setTitle("CMD: jc!chatsetup")
-                    .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
-                    .setFooter(foot)
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: '_'
-                            }
-                        }
-                    })
-                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-                } else
-                if(args[0]["value"] === 'ping') {
-                    var emb = new discord.MessageEmbed()
-                    .setColor("#DD2C00")
-                    .setTitle("CMD: jc!ping")
-                    .setDescription("Dieser Command sendet die Bot-Latency!")
-                    .setFooter(foot)
-                    client.api.interactions(interaction.id, interaction.token).callback.post({
-                        data: {
-                            type: 4,
-                            data: {
-                                content: '_'
-                            }
-                        }
-                    })
-                    new discord.WebhookClient(client.user.id, interaction.token).send(emb);
-                }
-            }
-        }  
+            if(interaction.deferred || interaction.replied) throwSlashCommandError((emb) => interaction.editReply(emb), footer, interaction.commandName);
+            else throwSlashCommandError((emb) => interaction.reply(emb), footer, interaction.commandName);
+        }
     });
 
-    //Globalchat
-    client.on('message', (msg)=> {
-        const foot = `Angefragt von ${msg.author.tag} | Auf ${client.guilds.cache.size} Servern`;
+    // Globalchat
+    client.on('messageCreate', (msg) => {
+        const foot = `${msg.member.guild.name} • Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
-            if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
-                msg.delete()
-                .then(msg => console.log(``))
+        
+        if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
+            msg.delete()
+                .then(msg => console.log())
                 .catch(console.error);             
-                client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
-                    var embed = new discord.MessageEmbed()
+            client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
+                var embed = new discord.MessageEmbed()
                     .setColor("#afd8f8")
                     .setTitle(msg.author.tag)
                     .setDescription(msg.content)
-                    .setFooter(msg.member.guild.name + " | " + `Auf ${client.guilds.cache.size} Servern`, avat)
-                    channel.send(embed)    
-                });             
+                    .setFooter(foot, avat)
+                channel.send(embed)    
+            });             
             return;
         }
     });
 
-    //Commands
-    client.on('message', (msg) => { 
+    // Use Normal Commands
+    client.on('messageCreate', async (msg) => { 
         if(msg.author.bot) return;
         if(!msg.content.startsWith(cfg.prefix)) return;
         const args = msg.content.trim().split(/ +/g);
         const cmd = args[0].slice(cfg.prefix.length).toLowerCase();
         const foot = `Angefragt von ${msg.author.tag} • Auf ${client.guilds.cache.size} Servern`;
         const avat = msg.author.avatarURL();
-
-
-
-        //Maybe not needing this anymore
-        /* if (cmd === "userinfo") {
-            let member = msg.mentions.users.first() || args[1] || msg.author;
-            if(!member) member = msg.guild.members.cache.get(user);
-            if(!member) return msg.channel.send(`:x: Diese Person konnte nicht gefunden werden!`);
-            function userstat(stat) {
-                let status = {
-                    online: "https://emoji.gg/assets/emoji/9166_online.png",
-                    idle: "https://emoji.gg/assets/emoji/3929_idle.png",
-                    dnd: "https://emoji.gg/assets/emoji/2531_dnd.png",
-                    offline: "<img src=https://emoji.gg/assets/emoji/7445_status_offline.png/>"
-                };
-                if(stat === 'online') return status.online;
-                if(stat === 'idle') return status.idle;
-                if(stat === 'dnd') return status.dnd;
-                if(stat === 'offline') return status.offline;
-            };
-            let userflags = member.flags.toArray();
-            let emb = new discord.MessageEmbed()
-                .setThumbnail(member.avatarURL({dynamic: true, size: 512}))
-                .setColor(member.displayHexColor)
-                .addField('User', [
-                    `**> Username:** ${member.username}`,
-                    `**> Tag:** ${member.discriminator}`,
-                    `**> ID:** ${member.id}`,
-                    `**> Flags:** ${userflags.length ? userflags.map(flag => flags[flag]).join(', ') : 'None'}`,
-                    `**> Avatar:** ${member.avatarURL({dynamic: true})}`,
-                    `**> Time Created:** ${moment(member.createdTimestamp).format('LT')} ${moment(member.createdTimestamp).format('LL')} ${moment(member.createdTimestamp).format('LL')} ${moment(member.createdTimestamp).fromNow()}`,
-                    `**> Status:** ${member.presence.status}`,
-                    `**> Game:** ${member.presence.game}`,
-                    `**> Server Join Date:** ${moment(member.joinedAt).format('LL LTS')}`,
-                    '\u200b'
-                ])
-            msg.channel.send(emb);
-        }
-*/
 
         if(cmd === "help") {
             msg.delete()
@@ -416,7 +289,7 @@ function abfrageName(DCID, msg) {
                 var emb = new discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setTitle("Der Invite Link")
-                .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann gib http://bit.ly/thejakobbot im Browser ein! Viel Spaß")
+                .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann klick (hier!)[https://discord.com/api/oauth2/authorize?client_id=903970959457927219&permissions=8&redirect_uri=https%3A%2F%2Fthejakobcraft.xyz&scope=bot%20applications.commands] Viel Spaß")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             } else
@@ -520,25 +393,30 @@ function abfrageName(DCID, msg) {
             if(args[1].toLowerCase() === "mc" || args[1].toLowerCase() === "minecraft") {
                 mcUserInfo.fetch(args[2], "https://meta.thejakobcraft.xyz:8080/skin", (res) => {
                     
-                    let emb = new discord.MessageEmbed()
-                    .setColor('#DD2C00')
-                    .setFooter(foot, avat)
-                    .setTimestamp()
-                    //  Now the Real Shit Begins 
-                    .setTitle(`Minecraft - Userinfo: ${args[2]}`)
-                    .setDescription(`Information about the Minecraft Player ${args[2]}`)
-                    .addFields(
-                        { name: '⠀', value: '**Player UUIDs:**' },
-                        { name: 'Undashed UUID:', value: res[0][0] },
-                        { name: 'Dashed UUID:', value: res[0][1] }
-                    )
-                    .addField('\u200B', '**Past Usernames:**', false)
-                    for(let i = 0; i<res[2].length; i++) {
-                        emb.addField(res[2][i], '\u200B', true);
-                    }
-                    emb.addField('Skin Render:', `[Click Me!](https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html)`);
+                    let skinRender = new discord.MessageButton()
+                        .setCustomId(`jctv_skinr_${args[2]}`)
+                        .setLabel('Skin Render')
+                        .setStyle('LINK')
+                        .setURL(`https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html`)
 
-                    msg.channel.send(emb);
+                    let emb = new discord.MessageEmbed()
+                        .setColor('#DD2C00')
+                        .setFooter(foot, avat)
+                        .setTimestamp()
+                        //  Now the Real Shit Begins 
+                        .setTitle(`Minecraft - Userinfo: ${args[2]}`)
+                        .setDescription(`Information about the Minecraft Player ${args[2]}`)
+                        .addFields(
+                            { name: '⠀', value: '**Player UUIDs:**' },
+                            { name: 'Undashed UUID:', value: res[0][0] },
+                            { name: 'Dashed UUID:', value: res[0][1] }
+                        )
+                        .addField('\u200B', '**Past Usernames:**', false);
+                        for(let i = 0; i<res[2].length; i++) {
+                            emb.addField(res[2][i], '\u200B', true);
+                        }
+
+                    msg.channel.send(emb, {buttons: [skinRender]});
                 });
             }
 
@@ -704,7 +582,7 @@ bot.on('message', (msg) => {
     bot.sendMessage(chatID, 'Nachricht erhalten')
 });
 bot.onText(/\/abt/, function (msg) {
-    bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findet man auf Discord!`);
+    bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findest du auf Discord!`);
 });
 // ALL
 bot.onText(/\/sdm/, function (msg) {
