@@ -237,14 +237,16 @@ var statusDEGRADED = {
 
     // Globalchat
     client.on('messageCreate', (msg) => {
-        const foot = `${msg.member.guild.name} • Auf ${client.guilds.cache.size} Servern`;
-        const avat = msg.author.avatarURL();
+        if(msg.author.bot) return;
         
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
             msg.delete()
                 .then(msg => console.log())
                 .catch(console.error);             
             client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
+                let foot = `${msg.member.guild.name} • Auf ${client.guilds.cache.size} Servern`;
+                let avat = msg.author.avatarURL();
+
                 var embed = new discord.MessageEmbed()
                     .setColor("#afd8f8")
                     .setTitle(msg.author.tag)
@@ -256,7 +258,7 @@ var statusDEGRADED = {
     });
 
     // Use Normal Commands
-    client.on('messageCreate', async (msg) => { 
+    client.on('messageCreate', async (msg) => {
         if(msg.author.bot) return;
         if(!msg.content.startsWith(cfg.prefix)) return;
         const args = msg.content.trim().split(/ +/g);
@@ -451,7 +453,7 @@ var statusDEGRADED = {
             } else tellNoAccess((emb) => msg.channel.send(emb), foot, avat);
         }
 
-        if(cmd === "spookifier") {
+        if(cmd === "spookyfier") {
             if (msg.author.id === cfg.author) {
 
                 var emojis = [
@@ -476,19 +478,10 @@ var statusDEGRADED = {
     
                 var tempChannelName = channelNames[Math.floor(Math.random()*channelNames.length)];
                 var tempEmoji = emojis[Math.floor(Math.random()*emojis.length)];
-    
-                client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(ch => {
+                client.channels.cache.filter(c => c.name.startsWith("jakobtest-")).forEach(ch => {
                     var ChannelName = tempChannelName.replace('-replacecontent-', tempEmoji);
                     ch.setName(ChannelName)
-
-                    var emb = new discord.MessageEmbed()
-                        .setColor('#0099ff')
-                        .setTitle('Spookifing everything!')
-                        .setDescription('Oh, Spooky!')
-                        .setFooter(foot, avat);
-                    msg.channel.send(emb);
                 });
-
             } else tellNoAccess((emb) => msg.channel.send(emb), foot, avat);
         }
     });
