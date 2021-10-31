@@ -8,7 +8,7 @@ module.exports = {
         let emb = new MessageEmbed()
             .setColor('AQUA')
             .setTitle(' ')
-            .setDescription('Nothing to see here!')
+            .setDescription(' ')
             .setFooter(footer, avatar)
         
         interaction.reply({

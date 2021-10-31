@@ -10,6 +10,7 @@ const discord = require('discord.js');
 const discordRest = require('@discordjs/rest');
 const discordRoutes = require('discord-api-types/v9');
 const fs = require('fs');
+const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
 const mysql = require("mysql");
 const ytdl = require("ytdl-core");
 const moment = require("moment");
@@ -28,22 +29,6 @@ const mcUserInfo = require('./MCInfo.js');
 const qrgen = require('./qrgen.js');
 const utils = require('./classes/utils.js');
 const { clearImmediate } = require('timers');
-const { executionAsyncResource } = require('async_hooks');
-const flags = {
-	DISCORD_EMPLOYEE: 'Discord Employee',
-	DISCORD_PARTNER: 'Discord Partner',
-	BUGHUNTER_LEVEL_1: 'Bug Hunter (Level 1)',
-	BUGHUNTER_LEVEL_2: 'Bug Hunter (Level 2)',
-	HYPESQUAD_EVENTS: 'HypeSquad Events',
-	HOUSE_BRAVERY: 'House of Bravery',
-	HOUSE_BRILLIANCE: 'House of Brilliance',
-	HOUSE_BALANCE: 'House of Balance',
-	EARLY_SUPPORTER: 'Early Supporter',
-	TEAM_USER: 'Team User',
-	SYSTEM: 'System',
-	VERIFIED_BOT: 'Verified Bot',
-	VERIFIED_DEVELOPER: 'Verified Bot Developer'
-};
 require("moment-duration-format");
 moment.locale('de');
 
@@ -53,8 +38,8 @@ var transporter = nodemailer.createTransport({
     host: "itm-hof.tk",
     port: 587,
     auth: {
-        user: "status@thejakobcraft.xyz",
-        pass: "Jakob@1411"
+        user: cfg.mailLogin,
+        pass: cfg.mailPass
     },
     tls: {
         rejectUnauthorized: false
@@ -88,11 +73,14 @@ var statusDEGRADED = {
 
 
 // DISCORD
-const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
-const slashCmds = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+    const slashCmds = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-var client = new discord.Client({
-        partials: ["MESSAGE", "CHANNEL", "REACTION"],
+    var client = new discord.Client({
+        partials: [
+            "MESSAGE",
+            "CHANNEL",
+            "REACTION"
+        ],
         intents: [
             discord.Intents.FLAGS.GUILDS,
             discord.Intents.FLAGS.GUILD_BANS,
@@ -112,11 +100,9 @@ var client = new discord.Client({
             discord.Intents.FLAGS.DIRECT_MESSAGE_TYPING
         ]
     });
-client.commands = new discord.Collection();
+    client.commands = new discord.Collection();
 
-var restClient = new discordRest.REST({
-        version: "9"
-    }).setToken(cfg.token);
+    var restClient = new discordRest.REST({ version: "9" }).setToken(cfg.token);
 
     function tellNoAccess(_call, footer, avatar) {
         let emb = new discord.MessageEmbed()
@@ -127,15 +113,37 @@ var restClient = new discordRest.REST({
         _call(emb);
     }
 
-    function throwSlashCommandError(_call, footer, cmdName) {
+    function throwSlashCommandError(_call, footer, avatar, cmdName) {
         let emb = new discord.MessageEmbed()
             .setColor('#DD2C00')
-            .setFooter(footer)
+            .setFooter(footer, avatar)
             .setTitle('Error: An error occoured while running!')
             .setDescription(`An error occoured while running ${cmdName}`);
         _call(emb);
     }
 
+    /* !!!!DO NOT USE THIS METHOD UNTIL ALL COMMANDS ARE STABLE AND TESTED!!!! */
+    /* also it will my brain very much */
+    async function registerGlobalSlashCommands(commands) {
+        var cmds = [];
+        
+        commands.forEach(cms => {
+            const command = require(`./commands/${cms}`);
+
+            cmds.push(command.data.toJSON());
+            client.commands.set(command.data.name, command);
+        });
+
+        return await restClient.put(discordRoutes.Routes.applicationCommands(client.user.id), {
+            body: cmds
+        })
+            .then(() => console.log(`Registered ${cmds.length} OFFICIAL Slash-Commands!`))
+            .catch(console.error);
+    }
+    /* so do not use this method please thank you */
+    /* !!!!DO NOT USE THIS METHOD UNTIL ALL COMMANDS ARE STABLE AND TESTED!!!! */
+
+    /* !!!!IF NOT ALL OF THE COMMANDS ARE STABLE AND TESTED, USE THIS METHOD!!!! */
     async function registerGuildSlashCommands(commands, guildId) {
         var cmds = [];
         
@@ -149,15 +157,17 @@ var restClient = new discordRest.REST({
         return await restClient.put(discordRoutes.Routes.applicationGuildCommands(client.user.id, guildId), {
             body: cmds
         })
-            .then(() => console.log(`Registered ${cmds.length} Slash-Commands!`))
+            .then(() => console.log(`Registered ${cmds.length} TESTING Slash-Commands!`))
             .catch(console.error);
     }
+    /* !!!!IF NOT ALL OF THE COMMANDS ARE STABLE AND TESTED, USE THIS METHOD!!!! */
 
     client.on('ready', () => {
-        client.user.setStatus('dnd');
-        qrgen.runMeFirst();
+        console.log(`Eingeloggt als ${client.user.username} • Auf ${client.guilds.cache.size} Servern!`);
         registerGuildSlashCommands(slashCmds, '510412740364599317');
+        qrgen.runMeFirst();
 
+        client.user.setStatus('dnd');
         client.user.setActivity({
             name: `loading. Please Wait`.toString(),
             activity: {
@@ -200,7 +210,6 @@ var restClient = new discordRest.REST({
                 activNum = 0;
             }
         }, 10 * 1000);
-        console.log(`Eingeloggt als ${client.user.username} | Auf ${client.guilds.cache.size} Servern!`);
         transporter.sendMail(statusUP, function(error, info) {
             if (error) {
               console.log(error);
@@ -210,13 +219,6 @@ var restClient = new discordRest.REST({
           });
 
     });
-    client.on('reconnecting', () => {
-        console.log("Verbindet neu!");
-    });
-    client.on('disconnect', () => {
-        console.log("Verbindung trennen");
-    });
-
 
     // Use Slashcommands
     client.on('interactionCreate', async (interaction) => {
@@ -225,13 +227,11 @@ var restClient = new discordRest.REST({
         const avatar = interaction.user.avatarURL();
         const command = client.commands.get(interaction.commandName);
 
-        if(command) try {
-            await command.execute(interaction, footer, avatar);
-        } catch(e) {
+        if(command) try { await command.execute(interaction, footer, avatar); } catch(e) {
             console.error(e);
 
-            if(interaction.deferred || interaction.replied) throwSlashCommandError((emb) => interaction.editReply(emb), footer, interaction.commandName);
-            else throwSlashCommandError((emb) => interaction.reply(emb), footer, interaction.commandName);
+            if(interaction.deferred || interaction.replied) throwSlashCommandError((emb) => interaction.editReply(emb), footer, avatar, interaction.commandName);
+            else throwSlashCommandError((emb) => interaction.reply(emb), footer, avatar, interaction.commandName);
         }
     });
 
@@ -251,8 +251,7 @@ var restClient = new discordRest.REST({
                     .setDescription(msg.content)
                     .setFooter(foot, avat)
                 channel.send(embed)    
-            });             
-            return;
+            });
         }
     });
 
@@ -284,36 +283,11 @@ var restClient = new discordRest.REST({
                 .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
-            } else
-            if(args[1] === 'invite') {
-                var emb = new discord.MessageEmbed()
-                .setColor('#0099ff')
-                .setTitle("Der Invite Link")
-                .setDescription("Du möchtest den Bot auch auf deinem Server haben? Dann klick (hier!)[https://discord.com/api/oauth2/authorize?client_id=903970959457927219&permissions=8&redirect_uri=https%3A%2F%2Fthejakobcraft.xyz&scope=bot%20applications.commands] Viel Spaß")
-                .setFooter(foot, avat)
-                msg.channel.send(emb);
-            } else
-            if(args[1] === 'ping') {
-                const startTime = Date.now();
-                var emb = new discord.MessageEmbed()
-                .setColor("#DD2C00")
-                .setTitle("Ping")
-                .setDescription("Pong!")
-                .setFooter(foot, avat)
-                msg.channel.send(emb).then(msg => {
-                    const endTime = Date.now();
-                    var emb = new discord.MessageEmbed()
-                    .setColor("#DD2C00")
-                    .setTitle("Ping")
-                    .setDescription(`Pong! (${endTime - startTime}ms)`)
-                    .setFooter(foot, avat)
-                    msg.edit(emb);
-                });
             } else {
                 var emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
-                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\nMit jc!help invite bekommst du den Invite Link von diesem Bot!\nMit jc!help ping bekommst du die Bot-Latency!")
+                .setDescription("Hier findest du alle Commands:\n`jc!help\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\nMit /invite invite bekommst du den Invite Link von diesem Bot!\nMit /ping bekommst du die Bot-Latency!")
                 .setFooter(foot, avat)
                 msg.channel.send(emb);
             }
@@ -394,7 +368,6 @@ var restClient = new discordRest.REST({
                 mcUserInfo.fetch(args[2], "https://meta.thejakobcraft.xyz:8080/skin", (res) => {
                     
                     let skinRender = new discord.MessageButton()
-                        .setCustomId(`jctv_skinr_${args[2]}`)
                         .setLabel('Skin Render')
                         .setStyle('LINK')
                         .setURL(`https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html`)
@@ -420,8 +393,8 @@ var restClient = new discordRest.REST({
                 });
             }
 
-            if(args[1].toLowerCase() === "module") {
-                if(args[2].toLowerCase() === "mc") {
+            if(args[1].toLowerCase() === "module" || args[1].toLowerCase() === "mod") {
+                if(args[2].toLowerCase() === "mc" || args[2].toLowerCase() === "minecraft") {
                     mcUserInfo.moduleInfo((call) => {
                     let emb = new discord.MessageEmbed()
                         .setColor('#DD2C00')
@@ -430,21 +403,11 @@ var restClient = new discordRest.REST({
                         .setDescription(`**${call}**`);
                     msg.channel.send(emb)});
                 }
-                if(args[2].toLowerCase() === "secretmc") {
-                    mcUserInfo.secretModuleInfo((call) => {
-                        let emb = new discord.MessageEmbed()
-                            .setColor('#DD2C00')
-                            .setFooter(foot, avat)
-                            .setTitle('MC User Stuff Getter')
-                            .setDescription(`**${call}**`);
-                        msg.channel.send(emb)});
-                }
             }
         }
 
         if(cmd === "update") {
             if(msg.author.id === cfg.author) {
-                
                 var getReleaseInfo = async (_call) => {
                     let opt = {
                         hostname: 'api.github.com',
@@ -485,89 +448,52 @@ var restClient = new discordRest.REST({
                     });
                 });
 
-            } else {
-                tellNoAccess((emb) => {
-                    msg.channel.send(emb);
-                }, foot, avat);
-            }
-        }
-
-        if(cmd === "makeitspooky") {
-            var delRole = msg.guild.roles.cache.find(role => role.name === 'thejakobutils_temp');
-            if(delRole) delRole.delete('brauch ich net mehr smh');
-
-            function CreateRole() {
-                msg.guild.roles.create({
-                    data: {
-                        name: 'thejakobutils_temp',
-                        color: 'BLUE',
-                    },
-                    reason: 'Temp Rolle für Spooky! Ich lösche die Rolle wieder! Versprochen!'
-                });
-            }
-
-            function RolesCreated() {
-                var role = msg.guild.roles.cache.some(role => role.name === 'thejakobutils_temp');
-                var guildMember = msg.mentions.members.first();
-    
-                if(role) guildMember.roles.add(role);
-                else msg.channel.send('role does not exist');
-    
-                msg.reply(`you can now use \`\`\`jc!spookifier\`\`\``);
-            }
-
-            setTimeout(CreateRole, 1000);
-            setTimeout(RolesCreated, 1500);
-
+            } else tellNoAccess((emb) => msg.channel.send(emb), foot, avat);
         }
 
         if(cmd === "spookifier") {
-            var emojis = [
-                '🎃',
-                '🦇',
-                '👻',
-                '🕸',
-                '🧛‍♀️',
-                '🧛‍♂️',
-                '🧛'
-            ];
+            if (msg.author.id === cfg.author) {
+
+                var emojis = [
+                    '🎃',
+                    '🦇',
+                    '👻',
+                    '🕸',
+                    '🧛‍♀️',
+                    '🧛‍♂️',
+                    '🧛'
+                ];
     
-            var channelNames = [
-                'jc-spookchat-replacecontent-',
-                'jc-spookierchat-replacecontent-',
-                'jc-iamspookychat-replacecontent-',
-                'jc-scarychat-replacecontent-',
-                'jc-scarierchat-replacecontent-',
-                'jc-totallynotscarychat-replacecontent-',
-                'jc-itsspookyseason-replacecontent-'
-            ];
+                var channelNames = [
+                    'jc-spookchat-replacecontent-',
+                    'jc-spookierchat-replacecontent-',
+                    'jc-iamspookychat-replacecontent-',
+                    'jc-scarychat-replacecontent-',
+                    'jc-scarierchat-replacecontent-',
+                    'jc-totallynotscarychat-replacecontent-',
+                    'jc-itsspookyseason-replacecontent-'
+                ];
     
-            var tempChannelName = channelNames[Math.floor(Math.random()*channelNames.length)];
-            var tempEmoji = emojis[Math.floor(Math.random()*emojis.length)];
+                var tempChannelName = channelNames[Math.floor(Math.random()*channelNames.length)];
+                var tempEmoji = emojis[Math.floor(Math.random()*emojis.length)];
     
-            if(msg.member.roles.cache.find(role => role.name === 'thejakobutils_temp')) {
                 client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(ch => {
                     var ChannelName = tempChannelName.replace('-replacecontent-', tempEmoji);
-    
+                    ch.setName(ChannelName)
+
                     var emb = new discord.MessageEmbed()
                         .setColor('#0099ff')
                         .setTitle('Spookifing everything!')
                         .setDescription('Oh, Spooky!')
                         .setFooter(foot, avat);
                     msg.channel.send(emb);
-    
-                    ch.setName(ChannelName)
-
-                    var delRole = msg.guild.roles.cache.find(role => role.name === 'thejakobutils_temp');
-                    if(delRole) delRole.delete('brauch ich net mehr smh');
                 });
 
-
-            }
+            } else tellNoAccess((emb) => msg.channel.send(emb), foot, avat);
         }
     });
 
-client.login(cfg.token);
+    client.login(cfg.token);
 
 // Twitch
 
