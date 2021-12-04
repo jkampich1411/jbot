@@ -240,6 +240,9 @@ var statusDEGRADED = {
         if(msg.author.bot) return;
         
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
+
+            if(msg.content.includes("http://") || msg.content.includes("https://") || msg.content.includes("http://") || msg.content.toLowerCase().includes("discord nitro")) return msg.delete().then().catch(console.error)
+
             msg.delete()
                 .then(msg => console.log())
                 .catch(console.error);             
