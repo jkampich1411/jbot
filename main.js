@@ -241,7 +241,7 @@ var statusDEGRADED = {
         
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
 
-            if(msg.content.includes("http://") || msg.content.includes("https://") || msg.content.includes("http://") || msg.content.toLowerCase().includes("discord nitro")) return msg.delete().then().catch(console.error)
+            if(msg.content.includes("http://") || msg.content.includes("https://") || msg.content.includes("http://") || msg.content.toLowerCase().includes("discord nitro")) return msg.delete().then().catch(console.error);
 
             msg.delete()
                 .then(msg => console.log())
@@ -250,12 +250,12 @@ var statusDEGRADED = {
                 let foot = `${msg.member.guild.name} • Auf ${client.guilds.cache.size} Servern`;
                 let avat = msg.author.avatarURL();
 
-                var embed = new discord.MessageEmbed()
+                let embed = new discord.MessageEmbed()
                     .setColor("#afd8f8")
                     .setTitle(msg.author.tag)
                     .setDescription(msg.content)
-                    .setFooter(foot, avat)
-                channel.send(embed)    
+                    .setFooter(foot, avat);
+                channel.send(embed);
             });
         }
     });
@@ -274,26 +274,26 @@ var statusDEGRADED = {
             .then(msg => console.log(``))
             .catch(console.error);
             if (args[1] === 'help') {
-                var emb = new discord.MessageEmbed()
+                let emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!help")
                 .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
-                .setFooter(foot, avat)
+                .setFooter(foot, avat);
                 msg.channel.send(emb);
             } else 
             if(args[1] === 'chatsetup') {
-                var emb = new discord.MessageEmbed()
+                let emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("CMD: jc!chatsetup")
                 .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
-                .setFooter(foot, avat)
+                .setFooter(foot, avat);
                 msg.channel.send(emb);
             } else {
-                var emb = new discord.MessageEmbed()
+                let emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
                 .setDescription("Hier findest du alle Commands:\n`jc!help\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\nMit /invite invite bekommst du den Invite Link von diesem Bot!\nMit /ping bekommst du die Bot-Latency!")
-                .setFooter(foot, avat)
+                .setFooter(foot, avat);
                 msg.channel.send(emb);
             }
         }
@@ -302,26 +302,16 @@ var statusDEGRADED = {
             msg.delete()
             .then(msg => console.log(``))
             .catch(console.error);
-            if (msg.author = msg.guild.owner) {
+            if (msg.author == msg.guild.owner) {
                 if(msg.guild.channels.cache.find(channel => channel.name === 'jc-chat')) {
-                    var emb = new discord.MessageEmbed()         
+                    let emb = new discord.MessageEmbed()         
                     .setColor('#DD2C00')
                     .setTitle("Den Globalchat erstellen!")
-                    .setDescription("Du hast den Globalchat doch schon! Halte ausschau nach einem Kanal der 'jc-chat' heißt!")
-                    .setFooter(foot, avat)
-                    msg.channel.send(emb)
+                    .setDescription("Der Globalchat ist schon auf diesem Discord!")
+                    .setFooter(foot, avat);
+                    msg.channel.send(emb);
                 } else {
-                    msg.guild.channels.create("jc-chat", {type: 'text'})
-                    .then(console.log)
-                    .catch(console.error);
-                    var emb = new discord.MessageEmbed();
-                    emb.setColor("#0099ff")
-                    emb.setTitle("Den Globalchat erstellen!")
-                    emb.setDescription(`Anscheinend willst du meinen Globalchat verwenden! Deshalb habe ich einen Textkanal erstellt der 'jc-chat' heißt. Dies ist mein Globalchat! Viel Spaß`,)
-                    emb.setFooter(foot, avat)
-                    msg.channel.send("", emb).then((m) => {
-                        message = m;
-                    }); 
+                    return;
                 }
             }
         }
@@ -361,7 +351,8 @@ var statusDEGRADED = {
                         .setFooter(foot, avat)
                         .setTitle('QRGen')
                         .setDescription(`**${call}**`);
-                    msg.channel.send(emb)});
+                    msg.channel.send(emb);
+                });
             }
         }
 
@@ -375,7 +366,7 @@ var statusDEGRADED = {
                     let skinRender = new discord.MessageButton()
                         .setLabel('Skin Render')
                         .setStyle('LINK')
-                        .setURL(`https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html`)
+                        .setURL(`https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html`);
 
                     let emb = new discord.MessageEmbed()
                         .setColor('#DD2C00')
@@ -406,10 +397,11 @@ var statusDEGRADED = {
                         .setFooter(foot, avat)
                         .setTitle('MC User Stuff Getter')
                         .setDescription(`**${call}**`);
-                    msg.channel.send(emb)});
-                }
+                    msg.channel.send(emb);
+                });
             }
         }
+    }
 
         if(cmd === "update") {
             if(msg.author.id === cfg.author) {
@@ -422,7 +414,7 @@ var statusDEGRADED = {
                             'User-Agent': 'jkdev API Agent/0.1'
                         },
                         method: 'GET'
-                    }
+                    };
                     
                     let req = https.request(opt, res => {
                         let datachunks = [];
@@ -438,7 +430,7 @@ var statusDEGRADED = {
 
                     req.on('error', err => console.error(err));
                     req.end();
-                }
+                };
 
                 getReleaseInfo((name, tag_name, body, published_at, author, avatar_url) => {
                     client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(ch => {
@@ -449,42 +441,10 @@ var statusDEGRADED = {
                                 .setAuthor(`A new feature update is ready!`, avatar_url, `https://thejakobcraft.xyz`)
                                 .setDescription(body)
                                 .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
-                            ch.send(emb)
+                            ch.send(emb);
                     });
                 });
 
-            } else tellNoAccess((emb) => msg.channel.send(emb), foot, avat);
-        }
-
-        if(cmd === "spookyfier") {
-            if (msg.author.id === cfg.author) {
-
-                var emojis = [
-                    '🎃',
-                    '🦇',
-                    '👻',
-                    '🕸',
-                    '🧛‍♀️',
-                    '🧛‍♂️',
-                    '🧛'
-                ];
-    
-                var channelNames = [
-                    'jc-spookchat-replacecontent-',
-                    'jc-spookierchat-replacecontent-',
-                    'jc-iamspookychat-replacecontent-',
-                    'jc-scarychat-replacecontent-',
-                    'jc-scarierchat-replacecontent-',
-                    'jc-totallynotscarychat-replacecontent-',
-                    'jc-itsspookyseason-replacecontent-'
-                ];
-    
-                var tempChannelName = channelNames[Math.floor(Math.random()*channelNames.length)];
-                var tempEmoji = emojis[Math.floor(Math.random()*emojis.length)];
-                client.channels.cache.filter(c => c.name.startsWith("jakobtest-")).forEach(ch => {
-                    var ChannelName = tempChannelName.replace('-replacecontent-', tempEmoji);
-                    ch.setName(ChannelName)
-                });
             } else tellNoAccess((emb) => msg.channel.send(emb), foot, avat);
         }
     });
