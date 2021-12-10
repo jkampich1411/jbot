@@ -1,0 +1,4 @@
+{
+	"publickey": "/etc/fullchain.pem",
+	"privatekey": "/etc/privkey.pem"
+}
