@@ -24,7 +24,6 @@ const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
 const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
-const request = require('request');
 const mcUserInfo = require('./MCInfo.js');
 const qrgen = require('./qrgen.js');
 const utils = require('./classes/utils.js');
