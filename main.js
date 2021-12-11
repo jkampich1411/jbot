@@ -10,25 +10,23 @@ const discord = require('discord.js');
 const discordRest = require('@discordjs/rest');
 const discordRoutes = require('discord-api-types/v9');
 const { DiscordTogether } = require('discord-together');
+
 const fs = require('fs');
 const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
-const mysql = require("mysql");
-const ytdl = require("ytdl-core");
+
 const moment = require("moment");
 const dayjs = require("dayjs");
 const tz = require('dayjs/plugin/timezone');
 dayjs.extend(tz);
-const qrg = require("qrcode");
+require("moment-duration-format");
+moment.locale('de');
+
 const https = require("https");
-const TelegramBot = require('node-telegram-bot-api');
-const nodemon = require('nodemon');
-const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
 const mcUserInfo = require('./MCInfo.js');
 const qrgen = require('./qrgen.js');
-const { clearImmediate } = require('timers');
-require("moment-duration-format");
-moment.locale('de');
+
+const nodemon = require('nodemon');
 //#endregion
 
 //Nodemailer Statuspage
@@ -160,6 +158,8 @@ var statusDEGRADED = {
     client.on('ready', () => {
         console.log(`Eingeloggt als ${client.user.username} • Auf ${client.guilds.cache.size} Servern!`);
         registerGuildSlashCommands(slashCmds, '510412740364599317');
+        registerGlobalSlashCommands(slashCmds);
+
         qrgen.runMeFirst();
 
         client.user.setStatus('dnd');
@@ -207,13 +207,10 @@ var statusDEGRADED = {
             }
         }, 10 * 1000);
 
-        transporter.sendMail(statusUP, function(error, info) {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log();
-            }
-          });
+        transporter.sendMail(statusUP, (e, i) => {
+            if (!(e)) console.error(e);
+            else;
+        });
 
     });
 
@@ -452,26 +449,3 @@ var statusDEGRADED = {
 // Twitch
 
 /* W(ork)i(n)P(rogress) */
-/*
-// Telegram
-var bot = new TelegramBot(cfg.telegramtoken, {polling: true});
-bot.on('message', (msg) => {
-    let chatID = msg.chat.id;
-    if(msg.text === /\/abt/) return;
-    if(msg.text === /\/sdm/) return;
-    bot.sendMessage(chatID, 'Nachricht erhalten')
-});
-bot.onText(/\/abt/, function (msg) {
-    bot.sendMessage(msg.chat.id, `Der Owner dieses Bots ist @TheJakobCraft! Mehr Infos findest du auf Discord!`);
-});
-// ALL
-bot.onText(/\/sdm/, function (msg) {
-    let chanid = "733638201935265812";
-    let message = msg.text.slice(4);
-    if(!message) {
-        message = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.";
-    }
-    client.channels.cache.get(chanid).send(`**[TELEGRAM] ${msg.from.first_name} (@${msg.from.username}):** ${message}`);
-    bot.sendMessage(msg.chat.id, `Nachricht an Discord gesendet!`);
-});
-*/
