@@ -9,7 +9,7 @@ module.exports = {
             .setColor('AQUA')
             .setTitle(' ')
             .setDescription(' ')
-            .setFooter(footer, avatar)
+            .setFooter(footer, avatar);
         
         interaction.reply({
             embeds: [emb],
@@ -22,7 +22,7 @@ module.exports = {
                 .setColor('AQUA')
                 .setTitle('Pong!')
                 .setDescription(`:hourglass: Latency: ${endTime - startTime}ms`)
-                .setFooter(footer, avatar)
+                .setFooter(footer, avatar);
             
             interaction.editReply({
                 embeds: [emb],
@@ -30,4 +30,4 @@ module.exports = {
             });
         });
     }
-}
+};

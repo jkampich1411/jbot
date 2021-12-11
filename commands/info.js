@@ -1,8 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 
+var emb;
+
 module.exports = {
     data: new SlashCommandBuilder().setName('info').setDescription("Zeige dir Informationen über einen User / Server an.")
+        .addSubcommand(suC => suC.setName('mc').setDescription("Zeige dir Informationen über einen Minecraft-Player an!"))
         .addSubcommand(suC => suC.setName('server').setDescription("Zeige dir Informationen über den Server an!"))
         .addSubcommand(suC => suC.setName('user').setDescription("Zeige dir Informationen über einen User an!")
         .addUserOption(opt => opt.setName('user').setDescription("User"))),
@@ -18,7 +21,7 @@ module.exports = {
                 if(interaction.guild.verificationLevel === 'HIGH') MessageEmbedServer_VerificationLevel = 'Stark';
                 if(interaction.guild.verificationLevel === 'VERY_HIGH') MessageEmbedServer_VerificationLevel = 'Sehr Stark';
 
-                var emb = new MessageEmbed()
+                emb = new MessageEmbed()
                     .setTitle(`Informationen über den Server ${interaction.guild.name}`)
                     .setFooter(footer, avatar)
                     .addFields([
@@ -38,7 +41,14 @@ module.exports = {
                             inline: true
                         }
                     ])
-                   .addFields([
+                    .addFields([
+                        {
+                            name: "Guild ID",
+                            value: `${interaction.guild.id}`,
+                            inline: true
+                        }
+                    ])
+                    .addFields([
                         {
                             name: "Server Owner:",
                             value: `<@${MessageEmbedServer_Owner.user.id}>`,
@@ -54,7 +64,7 @@ module.exports = {
                             value: `<t:${Math.round(MessageEmbedServer_Owner.user.createdTimestamp/1000)}>`,
                             inline: true
                         }
-                    ])
+                    ]);
 
                 interaction.reply({
                     embeds: [emb],
@@ -72,7 +82,7 @@ module.exports = {
                 if(user.nickname) MessageEmbedUser_Nickname = user.nickname;
                 else MessageEmbedUser_Nickname = "Kein Nickname";
 
-                var emb = new MessageEmbed()
+                emb = new MessageEmbed()
                     .setTitle(`Informationen über den User @${user.user.username}#${user.user.discriminator}`)
                     .setThumbnail(user.user.avatarURL({dynamic: true}))
                     .setFooter(footer, avatar)
@@ -92,7 +102,22 @@ module.exports = {
                             value: `${MessageEmbedUser_Nickname}`,
                             inline: true
                         }
-                    ])
+                    ]);
+                
+                interaction.reply({
+                    embeds: [emb],
+                    ephemeral: true
+                });
+
+                break;
+
+            case 'mc':
+                
+                emb = new MessageEmbed()
+                    .setColor("BLURPLE")
+                    .setFooter(footer, avatar)
+                    .setTitle("gar kein bock")
+                    .setDescription("ich hab kein bock diesen command zu porten. mach ich irgenwann mal");
                 
                 interaction.reply({
                     embeds: [emb],
@@ -102,4 +127,4 @@ module.exports = {
                 break;
         }
     }
-}
+};

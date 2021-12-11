@@ -1,14 +1,15 @@
-/*
-    Name: JBot
-    Author: TheJakobCraft
-    Version: 1.0.0
-    Programs: Twitch, Discord and Telegram
+/**
+    @name: JBot
+    @author: TheJakobCraft
+    @version: 0.0.1
+    In: (currently only) Discord, (Twitch, Telegram)
     Developing Start: 1st April, 2020
 */
-// IMPORTS
+//#region IMPORTS
 const discord = require('discord.js');
 const discordRest = require('@discordjs/rest');
 const discordRoutes = require('discord-api-types/v9');
+const { DiscordTogether } = require('discord-together');
 const fs = require('fs');
 const cfg = JSON.parse(fs.readFileSync('cfg.json', 'utf8'));
 const mysql = require("mysql");
@@ -20,7 +21,6 @@ dayjs.extend(tz);
 const qrg = require("qrcode");
 const https = require("https");
 const TelegramBot = require('node-telegram-bot-api');
-const { isAbsolute } = require('path');
 const nodemon = require('nodemon');
 const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
@@ -29,7 +29,7 @@ const qrgen = require('./qrgen.js');
 const { clearImmediate } = require('timers');
 require("moment-duration-format");
 moment.locale('de');
-
+//#endregion
 
 //Nodemailer Statuspage
 var transporter = nodemailer.createTransport({
@@ -99,6 +99,7 @@ var statusDEGRADED = {
         ]
     });
     client.commands = new discord.Collection();
+    client.discordActivites = new DiscordTogether(client);
 
     var restClient = new discordRest.REST({ version: "9" }).setToken(cfg.token);
 
@@ -121,7 +122,6 @@ var statusDEGRADED = {
     }
 
     /* !!!!DO NOT USE THIS METHOD UNTIL ALL COMMANDS ARE STABLE AND TESTED!!!! */
-    /* also it will my brain very much */
     async function registerGlobalSlashCommands(commands) {
         var cmds = [];
         
@@ -134,11 +134,9 @@ var statusDEGRADED = {
 
         return await restClient.put(discordRoutes.Routes.applicationCommands(client.user.id), {
             body: cmds
-        })
-            .then(() => console.log(`Registered ${cmds.length} OFFICIAL Slash-Commands!`))
-            .catch(console.error);
+        }).then(() => console.log(`Registered ${cmds.length} OFFICIAL Slash-Commands!`))
+        .catch(console.error);
     }
-    /* so do not use this method please thank you */
     /* !!!!DO NOT USE THIS METHOD UNTIL ALL COMMANDS ARE STABLE AND TESTED!!!! */
 
     /* !!!!IF NOT ALL OF THE COMMANDS ARE STABLE AND TESTED, USE THIS METHOD!!!! */
@@ -154,9 +152,8 @@ var statusDEGRADED = {
 
         return await restClient.put(discordRoutes.Routes.applicationGuildCommands(client.user.id, guildId), {
             body: cmds
-        })
-            .then(() => console.log(`Registered ${cmds.length} TESTING Slash-Commands!`))
-            .catch(console.error);
+        }).then(() => console.log(`Registered ${cmds.length} TESTING Slash-Commands!`))
+        .catch(console.error);
     }
     /* !!!!IF NOT ALL OF THE COMMANDS ARE STABLE AND TESTED, USE THIS METHOD!!!! */
 
@@ -172,6 +169,7 @@ var statusDEGRADED = {
                 type: 'PLAYING'
             }
         });
+        
         let activNum = 0;
         setInterval(function() {
             if(activNum === 0) {
@@ -208,6 +206,7 @@ var statusDEGRADED = {
                 activNum = 0;
             }
         }, 10 * 1000);
+
         transporter.sendMail(statusUP, function(error, info) {
             if (error) {
               console.log(error);
@@ -225,7 +224,7 @@ var statusDEGRADED = {
         const avatar = interaction.user.avatarURL();
         const command = client.commands.get(interaction.commandName);
 
-        if(command) try { await command.execute(interaction, footer, avatar); } catch(e) {
+        if(command) try { await command.execute(interaction, footer, avatar, client.discordActivites, cfg); } catch(e) {
             console.error(e);
 
             if(interaction.deferred || interaction.replied) throwSlashCommandError((emb) => interaction.editReply(emb), footer, avatar, interaction.commandName);
@@ -234,27 +233,28 @@ var statusDEGRADED = {
     });
 
     // Globalchat
-    client.on('messageCreate', (msg) => {
+    client.on('messageCreate', async (msg) => {
         if(msg.author.bot) return;
         
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
 
-            if(msg.content.includes("http://") || msg.content.includes("https://") || msg.content.includes("http://") || msg.content.toLowerCase().includes("discord nitro")) return msg.delete().then().catch(console.error);
+            if(!(msg.author.id = cfg.author) && cfg.globalchat.exclude.some(ss => msg.content.includes(ss))) return msg.delete().then().catch(console.error);
 
-            msg.delete()
-                .then(msg => console.log())
-                .catch(console.error);             
-            client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(channel => {                 
+            client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(c => {                 
                 let foot = `${msg.member.guild.name} • Auf ${client.guilds.cache.size} Servern`;
                 let avat = msg.author.avatarURL();
 
-                let embed = new discord.MessageEmbed()
+                let emb = new discord.MessageEmbed()
                     .setColor("#afd8f8")
                     .setTitle(msg.author.tag)
                     .setDescription(msg.content)
                     .setFooter(foot, avat);
-                channel.send(embed);
+                c.send({ embeds: [emb] });
             });
+
+            msg.delete()
+                .then()
+                .catch(console.error);
         }
     });
 
@@ -277,7 +277,7 @@ var statusDEGRADED = {
                 .setTitle("CMD: jc!help")
                 .setDescription("Dieser Command listet dir alle Befehle auf.\nMit ihm kannst du unter anderem auch diese Nachricht bekommen.")
                 .setFooter(foot, avat);
-                msg.channel.send(emb);
+                msg.channel.send({ embeds: [emb] });
             } else 
             if(args[1] === 'chatsetup') {
                 let emb = new discord.MessageEmbed()
@@ -285,20 +285,20 @@ var statusDEGRADED = {
                 .setTitle("CMD: jc!chatsetup")
                 .setDescription("Dieser Command erstellt dir einen Kanal Namens: `#jc-chat`. Dies ist mein Globalchat. ")
                 .setFooter(foot, avat);
-                msg.channel.send(emb);
+                msg.channel.send({ embeds: [emb] });
             } else {
                 let emb = new discord.MessageEmbed()
                 .setColor("#DD2C00")
                 .setTitle("Du brauchst Hilfe?")
                 .setDescription("Hier findest du alle Commands:\n`jc!help\njc!chatsetup`\nMit jc!help <cmd> kannst du dir mehr Infos anzeigen lassen.\nMit /invite invite bekommst du den Invite Link von diesem Bot!\nMit /ping bekommst du die Bot-Latency!")
                 .setFooter(foot, avat);
-                msg.channel.send(emb);
+                msg.channel.send({ embeds: [emb] });
             }
         }
 
         if(cmd === "chatsetup") {
             msg.delete()
-            .then(msg => console.log(``))
+            .then()
             .catch(console.error);
             if (msg.author == msg.guild.owner) {
                 if(msg.guild.channels.cache.find(channel => channel.name === 'jc-chat')) {
@@ -307,7 +307,7 @@ var statusDEGRADED = {
                     .setTitle("Den Globalchat erstellen!")
                     .setDescription("Der Globalchat ist schon auf diesem Discord!")
                     .setFooter(foot, avat);
-                    msg.channel.send(emb);
+                    msg.channel.send({ embeds: [emb] });
                 } else {
                     return;
                 }
@@ -328,7 +328,7 @@ var statusDEGRADED = {
                 qrgen.runCMD(args[2], bgc, fgc, (uuid) => {
                     let URL = `https://meta.thejakobcraft.xyz:8080/qr/${uuid}.png`;
 
-                    var emb = new discord.MessageEmbed()
+                    let emb = new discord.MessageEmbed()
                     .setColor('#DD2C00')
                     .setFooter(foot, avat)
                     .setTimestamp()
@@ -336,7 +336,7 @@ var statusDEGRADED = {
                     .setTitle(`QRcode - generated`)
                     .setDescription(`Here is your generated QR Code!`)
                     .setImage(URL);
-                    msg.channel.send(emb);
+                    msg.channel.send({ embeds: [emb] });
 
                     qrgen.delCMD(uuid);
                 });
@@ -349,7 +349,7 @@ var statusDEGRADED = {
                         .setFooter(foot, avat)
                         .setTitle('QRGen')
                         .setDescription(`**${call}**`);
-                    msg.channel.send(emb);
+                    msg.channel.send({ embeds: [emb] });
                 });
             }
         }
@@ -395,7 +395,7 @@ var statusDEGRADED = {
                         .setFooter(foot, avat)
                         .setTitle('MC User Stuff Getter')
                         .setDescription(`**${call}**`);
-                    msg.channel.send(emb);
+                    msg.channel.send({ embeds: [emb] });
                 });
             }
         }
@@ -439,7 +439,7 @@ var statusDEGRADED = {
                                 .setAuthor(`A new feature update is ready!`, avatar_url, `https://thejakobcraft.xyz`)
                                 .setDescription(body)
                                 .setFooter(`Release ${tag_name} • Published at ${dayjs(published_at).format('DD[.]MM[.]YYYY[ | ]HH[:]mm')}`, avat);
-                            ch.send(emb);
+                            ch.send({ embeds: [emb] });
                     });
                 });
 
