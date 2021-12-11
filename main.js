@@ -26,7 +26,6 @@ const { chdir, stdout } = require('process');
 const nodemailer = require('nodemailer');
 const mcUserInfo = require('./MCInfo.js');
 const qrgen = require('./qrgen.js');
-const utils = require('./classes/utils.js');
 const { clearImmediate } = require('timers');
 require("moment-duration-format");
 moment.locale('de');
