@@ -247,7 +247,7 @@ var getStuff = (playername, webPrefix, cb) => {
     });
 };
 
-switch (nodeArgs[0].toLowerCase()) {
+if (nodeArgs[0]) switch (nodeArgs[0].toLowerCase()) {
     case 'webserver':
         if (os === "win32" || os === "linux") {
             deblog(`Starting Webserver on ${port};`);
