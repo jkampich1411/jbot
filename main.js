@@ -358,10 +358,10 @@ var statusDEGRADED = {
             if(args[1].toLowerCase() === "mc" || args[1].toLowerCase() === "minecraft") {
                 mcUserInfo.fetch(args[2], "https://meta.thejakobcraft.xyz:8080/skin", (res) => {
                     
-                    let skinRender = new discord.MessageButton()
+                    let skinRenderButton = new discord.MessageActionRow().addComponents( new discord.MessageButton()
                         .setLabel('Skin Render')
                         .setStyle('LINK')
-                        .setURL(`https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html`);
+                        .setURL(`https://meta.thejakobcraft.xyz:8080/skin/${args[2]}.html`));
 
                     let emb = new discord.MessageEmbed()
                         .setColor('#DD2C00')
@@ -380,7 +380,7 @@ var statusDEGRADED = {
                             emb.addField(res[2][i], '\u200B', true);
                         }
 
-                    msg.channel.send({ embeds: [emb], buttons: [skinRender]});
+                    msg.channel.send({ embeds: [emb], components: [skinRenderButton]});
                 });
             }
 
