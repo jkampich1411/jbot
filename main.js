@@ -380,7 +380,7 @@ var statusDEGRADED = {
                             emb.addField(res[2][i], '\u200B', true);
                         }
 
-                    msg.channel.send(emb, {buttons: [skinRender]});
+                    msg.channel.send({ embeds: [emb], buttons: [skinRender]});
                 });
             }
 
