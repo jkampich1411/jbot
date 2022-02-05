@@ -235,7 +235,13 @@ var statusDEGRADED = {
         
         if(msg.channel.name.startsWith("jc-") && msg.author.id != client.user.id) {
 
-            if(!(msg.author.id = cfg.author) && cfg.globalchat.exclude.some(ss => msg.content.includes(ss))) return msg.delete().then().catch(console.error);
+            if(!(msg.author.id = cfg.author)) {
+                for(let i=0; i<cfg.globalchat.exclude; i++) {
+                    if(msg.content.includes(cfg.globalchat.exclude[i])) {
+                        return msg.delete().then().catch(console.error)
+                    }
+                }
+            }
 
             client.channels.cache.filter(c => c.name.startsWith("jc-")).forEach(c => {                 
                 let foot = `${msg.member.guild.name} • Auf ${client.guilds.cache.size} Servern`;
